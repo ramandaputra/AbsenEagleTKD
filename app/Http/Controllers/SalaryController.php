@@ -69,8 +69,10 @@ class SalaryController extends Controller
             ->where('role', UserRole::AsistenPelatih)
             ->where('is_active', true);
 
-        if ($actor->role === UserRole::Admin && $actor->dojang_id) {
-            $query->where('dojang_id', $actor->dojang_id);
+        if (! $actor->isSuperAdmin()) {
+            if ($actor->dojang_id) {
+                $query->where('dojang_id', $actor->dojang_id);
+            }
         } elseif ($dojangId) {
             $query->where('dojang_id', $dojangId);
         }
@@ -114,12 +116,42 @@ class SalaryController extends Controller
     }
 
     /**
+     * Update the per-session honor rate for an assistant coach.
+     */
+    public function updateCoachRate(Request $request, User $coach): RedirectResponse
+    {
+        $actor = $request->user();
+        if (! $actor->isAdmin() || ! $coach->isAsistenPelatih()) {
+            abort(403);
+        }
+
+        if (! $actor->isSuperAdmin() && $actor->dojang_id && $actor->dojang_id !== $coach->dojang_id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'coach_id' => ['required', 'integer', 'in:'.$coach->id],
+            'rate_per_session' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $coach->update([
+            'rate_per_session' => $validated['rate_per_session'],
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Tarif honor per pertemuan untuk '.$coach->name.' berhasil diperbarui.');
+    }
+
+    /**
      * Admin view & print salary slip for a specific coach.
      */
     public function adminSlip(Request $request, User $coach, int $month, int $year): View
     {
         $actor = $request->user();
         if (! $actor->isAdmin()) {
+            abort(403);
+        }
+
+        if (! $actor->isSuperAdmin() && $actor->dojang_id && $actor->dojang_id !== $coach->dojang_id) {
             abort(403);
         }
 
@@ -148,7 +180,7 @@ class SalaryController extends Controller
         $year = (int) $request->input('year', Carbon::now()->year);
 
         $query = User::where('role', UserRole::AsistenPelatih)->where('is_active', true);
-        if ($actor->role === UserRole::Admin && $actor->dojang_id) {
+        if (! $actor->isSuperAdmin() && $actor->dojang_id) {
             $query->where('dojang_id', $actor->dojang_id);
         }
 

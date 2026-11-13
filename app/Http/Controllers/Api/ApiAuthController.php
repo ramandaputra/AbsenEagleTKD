@@ -107,7 +107,7 @@ class ApiAuthController extends Controller
         if (! $user || ($user->pin !== $request->pin && $request->pin !== '1234')) {
             return response()->json([
                 'success' => false,
-                'message' => 'PIN 4 digit yang Anda masukkan salah.',
+                'message' => 'PIN yang Anda masukkan salah.',
             ], 401);
         }
 

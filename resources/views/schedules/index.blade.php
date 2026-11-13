@@ -1,74 +1,97 @@
 @extends('layouts.app')
 
-@section('title', 'Jadwal Latihan & Piket Mengajar')
+@section('title', 'Jadwal Latihan')
 
 @section('content')
-<div class="space-y-4" x-data="scheduleManager()">
+@php
+    $oldCoachIds = old('coaches', ['']);
+    $oldCoachIds = is_array($oldCoachIds) ? $oldCoachIds : [''];
+@endphp
 
-    <!-- Header & Action -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-            <h1 class="text-lg font-black text-white flex items-center gap-2">
-                <i data-lucide="calendar" class="w-5 h-5 text-red-500"></i> Jadwal Latihan & Piket Mengajar
-            </h1>
-            <p class="text-xs text-slate-400">Jadwal kegiatan latihan taekwondo terintegrasi dengan penugasan asisten pelatih</p>
+<div class="space-y-3.5" x-data="scheduleManager()">
+    <section class="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#00227A] via-[#00144D] to-[#070E28] p-4 text-white shadow-lg">
+        <div class="pointer-events-none absolute -right-5 -top-5 h-36 w-36 rounded-full bg-blue-500/20 blur-xl"></div>
+        <div class="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-cyan-400/10 blur-xl"></div>
+
+        <div class="relative z-10 flex items-start justify-between gap-3">
+            <div class="min-w-0">
+                <span class="inline-flex items-center rounded-full border border-blue-300/40 bg-blue-500/25 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-100">
+                    Latihan &amp; Penugasan
+                </span>
+                <h1 class="mt-1.5 text-sm font-extrabold tracking-tight">Jadwal Latihan</h1>
+                <p class="mt-0.5 text-[11px] font-medium text-[#7DD3FC]">Daftar latihan dan asisten pelatih yang bertugas.</p>
+            </div>
+
+            @if(auth()->user()->isAdmin())
+                <button type="button" @click="showAddModal = true"
+                        class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-[11px] font-bold text-[#00288E] shadow-sm transition-colors hover:bg-[#EAEDFF]">
+                    <span class="material-symbols-rounded text-base">add</span>
+                    Atur Jadwal
+                </button>
+            @endif
         </div>
+    </section>
 
-        @if(auth()->user()->isAdmin())
-            <button type="button" @click="showAddModal = true" class="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all">
-                <i data-lucide="plus" class="w-4 h-4"></i>
-                <span>Tambah Jadwal & Piket</span>
-            </button>
-        @endif
-    </div>
+    <section class="rounded-xl border border-[#DAE2FD]/70 bg-white p-3 shadow-2xs">
+        <div class="flex items-center justify-between gap-2">
+            <form method="GET" action="{{ route('schedules.index') }}" class="flex min-w-0 items-center gap-2">
+                <label class="sr-only" for="schedule-month">Bulan</label>
+                <select id="schedule-month" name="month" onchange="this.form.submit()"
+                        class="min-w-0 rounded-lg border border-[#DAE2FD] bg-white px-2.5 py-2 text-[11px] font-semibold text-[#131B2E] focus:border-[#0051D5] focus:outline-none">
+                    @foreach(range(1, 12) as $m)
+                        <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create($year, $m, 1)->translatedFormat('F') }}
+                        </option>
+                    @endforeach
+                </select>
 
-    <!-- Month Filter & Mode Tabs -->
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-lg flex items-center justify-between">
-        <form method="GET" action="{{ route('schedules.index') }}" class="flex items-center gap-2 text-xs">
-            <select name="month" onchange="this.form.submit()" class="py-1.5 px-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-semibold focus:outline-none focus:border-red-500">
-                @foreach(range(1, 12) as $m)
-                    <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
-                        {{ \Carbon\Carbon::create(2026, $m, 1)->translatedFormat('F') }}
-                    </option>
-                @endforeach
-            </select>
-            <select name="year" onchange="this.form.submit()" class="py-1.5 px-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-semibold focus:outline-none focus:border-red-500">
-                @foreach(range(2025, 2027) as $y)
-                    <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                @endforeach
-            </select>
-        </form>
+                <label class="sr-only" for="schedule-year">Tahun</label>
+                <select id="schedule-year" name="year" onchange="this.form.submit()"
+                        class="rounded-lg border border-[#DAE2FD] bg-white px-2.5 py-2 text-[11px] font-semibold text-[#131B2E] focus:border-[#0051D5] focus:outline-none">
+                    @foreach(range(2025, 2027) as $y)
+                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endforeach
+                </select>
+            </form>
 
-        <span class="text-xs text-slate-400 font-semibold">
-            Total {{ $schedules->count() }} Kegiatan
-        </span>
-    </div>
+            <span class="shrink-0 rounded-full bg-[#EAEDFF] px-2.5 py-1 text-[10px] font-bold text-[#0051D5]">
+                {{ $schedules->count() }} jadwal
+            </span>
+        </div>
+    </section>
 
-    <!-- Schedules List -->
     @if($schedules->isEmpty())
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center">
-            <i data-lucide="calendar-x" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
-            <h3 class="text-sm font-bold text-white">Belum ada jadwal latihan</h3>
-            <p class="text-xs text-slate-400 mt-1">Belum ada jadwal kegiatan latihan yang dibuat untuk bulan ini.</p>
-        </div>
+        <section class="rounded-2xl border border-[#DAE2FD] bg-white px-5 py-9 text-center shadow-xs">
+            <span class="material-symbols-rounded text-4xl text-[#94A3B8]">event_busy</span>
+            <h2 class="mt-2 text-xs font-bold text-[#131B2E]">Belum ada jadwal latihan</h2>
+            <p class="mt-1 text-[11px] text-[#64748B]">Jadwal untuk bulan ini akan tampil di sini.</p>
+            @if(auth()->user()->isAdmin())
+                <button type="button" @click="showAddModal = true"
+                        class="mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#0051D5] px-3.5 text-[11px] font-bold text-white transition-colors hover:bg-[#003EA8]">
+                    <span class="material-symbols-rounded text-base">add</span>
+                    Atur Jadwal
+                </button>
+            @endif
+        </section>
     @else
-        <div class="space-y-3">
+        <section class="space-y-2.5">
             @foreach($schedules as $sched)
-                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-lg flex flex-col gap-3">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 to-amber-500 p-0.5 shrink-0">
-                                <div class="w-full h-full rounded-[14px] bg-slate-950 flex flex-col items-center justify-center font-bold">
-                                    <span class="text-[9px] uppercase text-red-400">{{ $sched->date->translatedFormat('D') }}</span>
-                                    <span class="text-xs text-white">{{ $sched->date->format('d') }}</span>
-                                </div>
+                <article class="space-y-3 rounded-2xl border border-[#DAE2FD] bg-white p-3.5 shadow-xs">
+                    <div class="flex items-start justify-between gap-2.5">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <div class="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-[#EAEDFF] text-[#0051D5]">
+                                <span class="text-[9px] font-bold uppercase leading-none">{{ $sched->date->translatedFormat('D') }}</span>
+                                <span class="mt-1 text-base font-extrabold leading-none">{{ $sched->date->format('d') }}</span>
                             </div>
-                            <div>
-                                <h2 class="text-sm font-extrabold text-white">{{ $sched->activity_name }}</h2>
-                                <p class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5">
-                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
-                                    {{ substr($sched->start_time, 0, 5) }} - {{ substr($sched->end_time, 0, 5) }} WIB
-                                    • <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-400"></i> {{ $sched->location }}
+                            <div class="min-w-0">
+                                <h2 class="truncate text-xs font-extrabold text-[#131B2E]">{{ $sched->activity_name }}</h2>
+                                <p class="mt-1 flex items-center gap-1 text-[10px] text-[#64748B]">
+                                    <span class="material-symbols-rounded text-sm text-[#0051D5]">calendar_today</span>
+                                    {{ $sched->date->translatedFormat('d F Y') }}
+                                </p>
+                                <p class="mt-0.5 flex items-center gap-1 text-[10px] text-[#64748B]">
+                                    <span class="material-symbols-rounded text-sm text-[#0051D5]">schedule</span>
+                                    {{ substr((string) $sched->start_time, 0, 5) }}–{{ substr((string) $sched->end_time, 0, 5) }} WIB
                                 </p>
                             </div>
                         </div>
@@ -77,26 +100,32 @@
                             <form action="{{ route('schedules.destroy', $sched) }}" method="POST" onsubmit="return confirm('Hapus jadwal latihan ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="w-8 h-8 rounded-xl bg-slate-950 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-700/60 flex items-center justify-center text-slate-500 hover:text-rose-400 transition-colors">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                <button type="submit" title="Hapus jadwal"
+                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-rose-100 text-rose-500 transition-colors hover:bg-rose-50">
+                                    <span class="material-symbols-rounded text-base">delete</span>
                                 </button>
                             </form>
                         @endif
                     </div>
 
+                    <div class="flex items-start gap-1.5 rounded-xl bg-[#F8FAFC] px-2.5 py-2 text-[10px] text-[#64748B]">
+                        <span class="material-symbols-rounded text-sm text-[#0051D5]">location_on</span>
+                        <span class="min-w-0 leading-snug">{{ $sched->location }}</span>
+                    </div>
+
                     @if($sched->description)
-                        <div class="text-[11px] text-slate-300 italic px-3 py-1.5 rounded-xl bg-slate-950/60 border border-slate-800/60">
+                        <p class="rounded-xl border border-[#DAE2FD]/70 bg-[#F8FAFC] px-2.5 py-2 text-[10.5px] leading-snug text-[#475569]">
                             {{ $sched->description }}
-                        </div>
+                        </p>
                     @endif
 
-                    <!-- Petugas Piket Mengajar (Duty Assignments) -->
-                    <div class="p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                                <i data-lucide="users" class="w-3.5 h-3.5 text-amber-400"></i> Petugas Piket Mengajar:
-                            </span>
-                            <span class="text-[10px] text-slate-500">
+                    <div class="space-y-2 rounded-xl border border-[#DAE2FD]/70 bg-[#F8FAFC] p-2.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 text-[10px] font-bold text-[#131B2E]">
+                                <span class="material-symbols-rounded text-base text-[#0051D5]">groups</span>
+                                Asisten Bertugas
+                            </div>
+                            <span class="truncate text-[9.5px] text-[#64748B]">
                                 {{ $sched->dutySchedule ? $sched->dutySchedule->shift_name : 'Piket Utama' }}
                             </span>
                         </div>
@@ -104,124 +133,111 @@
                         @if($sched->dutySchedule && $sched->dutySchedule->assignments->isNotEmpty())
                             <div class="space-y-1.5">
                                 @foreach($sched->dutySchedule->assignments as $assign)
-                                    <div class="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-2 h-2 rounded-full {{ $assign->user_id === auth()->id() ? 'bg-red-500 animate-ping' : 'bg-emerald-500' }}"></span>
-                                            <strong class="text-white">{{ $assign->user->name }}</strong>
+                                    <div class="flex items-center justify-between gap-2 rounded-lg border border-[#DAE2FD]/70 bg-white px-2.5 py-2">
+                                        <div class="flex min-w-0 items-center gap-2">
+                                            <span class="h-1.5 w-1.5 shrink-0 rounded-full {{ $assign->user_id === auth()->id() ? 'bg-[#0051D5]' : 'bg-emerald-500' }}"></span>
+                                            <span class="truncate text-[10.5px] font-semibold text-[#131B2E]">{{ $assign->user->name }}</span>
                                             @if($assign->user_id === auth()->id())
-                                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-red-950 text-red-300 border border-red-800">Tugas Anda</span>
+                                                <span class="shrink-0 rounded-full bg-[#EAEDFF] px-1.5 py-0.5 text-[9px] font-bold text-[#0051D5]">Tugas Anda</span>
                                             @endif
-                                            <span class="text-[10px] text-slate-400">({{ $assign->role_task }})</span>
                                         </div>
-                                        @if($assign->training_materials)
-                                            <span class="text-[10px] text-slate-400 truncate max-w-[150px] text-right italic">
-                                                "{{ $assign->training_materials }}"
-                                            </span>
-                                        @endif
+                                        <span class="shrink-0 text-right text-[9.5px] text-[#64748B]">{{ $assign->role_task }}</span>
                                     </div>
+                                    @if($assign->training_materials)
+                                        <p class="px-2.5 text-[9.5px] italic text-[#64748B]">Materi: {{ $assign->training_materials }}</p>
+                                    @endif
                                 @endforeach
                             </div>
                         @else
-                            <p class="text-[11px] text-slate-500 italic">Belum ada asisten pelatih yang ditugaskan piket.</p>
+                            <p class="rounded-lg bg-white px-2.5 py-2 text-[10px] text-[#64748B]">Belum ada asisten yang ditugaskan.</p>
                         @endif
                     </div>
-                </div>
+                </article>
             @endforeach
-        </div>
+        </section>
     @endif
 
-    <!-- Modal: Tambah Jadwal & Piket Mengajar -->
     @if(auth()->user()->isAdmin())
-        <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 w-full max-w-lg shadow-2xl space-y-4 my-8" @click.away="showAddModal = false">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i data-lucide="calendar-plus" class="w-4 h-4 text-red-500"></i>
-                    Tambah Jadwal Latihan & Penugasan Piket
-                </h3>
+        <div x-show="showAddModal" x-cloak
+             x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-md space-y-4 rounded-2xl border border-[#DAE2FD] bg-white p-4 shadow-2xl"
+                 @click.away="showAddModal = false">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EAEDFF] text-[#0051D5]">
+                            <span class="material-symbols-rounded">event_available</span>
+                        </span>
+                        <div>
+                            <h2 class="text-sm font-bold text-[#131B2E]">Atur Jadwal</h2>
+                            <p class="mt-0.5 text-[10.5px] text-[#64748B]">Pilih tanggal dan asisten yang bertugas.</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showAddModal = false" title="Tutup"
+                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#64748B] transition-colors hover:bg-[#F2F3FF]">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                </div>
 
                 <form action="{{ route('schedules.store') }}" method="POST" class="space-y-3 text-xs">
                     @csrf
 
-                    <div>
-                        <label class="block text-slate-400 mb-1">Nama Kegiatan Latihan</label>
-                        <input type="text" name="activity_name" required placeholder="Contoh: Kelas Reguler Poomsae & Kyorugi"
-                            class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-red-500">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div>
-                            <label class="block text-slate-400 mb-1">Tanggal</label>
-                            <input type="date" name="date" value="{{ date('Y-m-d') }}" required
-                                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-red-500">
+                    @if($errors->any())
+                        <div class="space-y-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2">
+                            @foreach($errors->all() as $error)
+                                <p class="text-[10px] text-rose-700">{{ $error }}</p>
+                            @endforeach
                         </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1">Jam Mulai</label>
-                            <input type="time" name="start_time" value="16:00" required
-                                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-red-500">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1">Jam Selesai</label>
-                            <input type="time" name="end_time" value="18:00" required
-                                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-red-500">
-                        </div>
-                    </div>
+                    @endif
 
                     <div>
-                        <label class="block text-slate-400 mb-1">Lokasi Latihan</label>
-                        <input type="text" name="location" value="Dojang Eagle Pusat GOR Pajajaran" required
-                            class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-red-500">
+                        <label for="schedule-date" class="mb-1 block text-[10.5px] font-semibold text-[#131B2E]">Tanggal Latihan</label>
+                        <input id="schedule-date" type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" required
+                               class="h-10 w-full rounded-xl border border-[#DAE2FD] bg-white px-3 text-xs text-[#131B2E] focus:border-[#0051D5] focus:outline-none focus:ring-2 focus:ring-[#0051D5]/10">
                     </div>
 
-                    <div>
-                        <label class="block text-slate-400 mb-1">Keterangan / Deskripsi Latihan</label>
-                        <textarea name="description" rows="2" placeholder="Fokus materi latihan hari ini..."
-                            class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-red-500"></textarea>
-                    </div>
-
-                    <!-- Pembagian Piket Asisten Pelatih (Integrated Duty Schedule) -->
-                    <div class="p-3 rounded-2xl bg-slate-950 border border-amber-900/40 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
-                                Penugasan Petugas Piket Mengajar
-                            </span>
-                            <button type="button" @click="addCoachRow()" class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold text-[10px]">
-                                + Tambah Asisten
+                    <div class="space-y-2 rounded-xl border border-[#DAE2FD]/70 bg-[#F8FAFC] p-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[10.5px] font-semibold text-[#131B2E]">Asisten Pelatih</span>
+                            <button type="button" @click="addCoachRow()"
+                                    class="inline-flex items-center gap-1 rounded-lg bg-[#EAEDFF] px-2.5 py-1.5 text-[10px] font-bold text-[#0051D5] transition-colors hover:bg-[#DAE2FD]">
+                                <span class="material-symbols-rounded text-sm">add</span>
+                                Tambah
                             </button>
                         </div>
 
                         <template x-for="(row, index) in assignedRows" :key="index">
-                            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] text-slate-400 font-bold" x-text="'Petugas #' + (index + 1)"></span>
-                                    <button type="button" @click="removeCoachRow(index)" class="text-rose-400 text-[10px] hover:underline" x-show="assignedRows.length > 1">Hapus</button>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <select name="coaches[]" required class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-[11px]">
-                                        <option value="">-- Pilih Asisten --</option>
-                                        @foreach($coaches as $c)
-                                            <option value="{{ $c->id }}">{{ $c->name }} ({{ $c->belt_level }})</option>
-                                        @endforeach
-                                    </select>
-                                    <input type="text" name="role_tasks[]" placeholder="Tugas (e.g. Instruktur Poomsae)" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-[11px]">
-                                </div>
-                                <input type="text" name="materials[]" placeholder="Materi (e.g. Taegeuk 1-3, Tendangan Dwi Chagi)" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-[11px]">
+                            <div class="flex items-center gap-2">
+                                <label class="sr-only" :for="'assistant-' + index">Pilih asisten pelatih</label>
+                                <select :id="'assistant-' + index" name="coaches[]" x-model="row.coachId" required
+                                        class="h-10 min-w-0 flex-1 rounded-xl border border-[#DAE2FD] bg-white px-3 text-xs text-[#131B2E] focus:border-[#0051D5] focus:outline-none">
+                                    <option value="">Pilih nama asisten pelatih</option>
+                                    @foreach($coaches as $coach)
+                                        <option value="{{ $coach->id }}">{{ $coach->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" @click="removeCoachRow(index)" x-show="assignedRows.length > 1"
+                                        class="flex h-9 shrink-0 items-center justify-center rounded-lg px-2 text-[10px] font-semibold text-rose-600 transition-colors hover:bg-rose-50">
+                                    Hapus
+                                </button>
                             </div>
                         </template>
                     </div>
 
-                    <div class="flex items-center gap-2 pt-2">
-                        <button type="button" @click="showAddModal = false" class="flex-1 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold">
+                    <div class="flex items-center gap-2 pt-1">
+                        <button type="button" @click="showAddModal = false"
+                                class="h-10 flex-1 rounded-xl border border-[#DAE2FD] bg-white text-xs font-semibold text-[#64748B] transition-colors hover:bg-[#F8FAFC]">
                             Batal
                         </button>
-                        <button type="submit" class="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold">
-                            Simpan Jadwal & Piket
+                        <button type="submit"
+                                class="h-10 flex-1 rounded-xl bg-[#0051D5] text-xs font-bold text-white transition-colors hover:bg-[#003EA8]">
+                            Simpan Jadwal
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     @endif
-
 </div>
 
 @push('scripts')
@@ -229,20 +245,23 @@
 function scheduleManager() {
     return {
         showAddModal: false,
-        assignedRows: [
-            { coachId: '', roleTask: '', material: '' }
-        ],
+        assignedRows: @js($oldCoachIds).map(coachId => ({ coachId: String(coachId) })),
 
-        addCoachRow() {
-            this.assignedRows.push({ coachId: '', roleTask: '', material: '' });
+        init() {
+            if (@js($errors->any())) {
+                this.showAddModal = true;
+            }
         },
 
-        removeCoachRow(idx) {
-            this.assignedRows.splice(idx, 1);
+        addCoachRow() {
+            this.assignedRows.push({ coachId: '' });
+        },
+
+        removeCoachRow(index) {
+            this.assignedRows.splice(index, 1);
         }
     }
 }
 </script>
 @endpush
 @endsection
-

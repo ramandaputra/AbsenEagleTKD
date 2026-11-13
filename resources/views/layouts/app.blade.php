@@ -154,8 +154,8 @@
             </div>
         </header>
 
-        <!-- Admin / Superadmin Navigation Banner (For Admin/Superadmin Roles) -->
-        @if(auth()->user()->isAdmin())
+        <!-- Superadmin Navigation Banner -->
+        @if(auth()->user()->isSuperAdmin() && !request()->routeIs('profile.*'))
             <div class="bg-[#EAEDFF] border-b border-[#DAE2FD] px-3 py-2 overflow-x-auto no-scrollbar flex items-center gap-2 text-xs no-print">
                 <span class="text-[#00288E] font-bold px-2 py-0.5 rounded-lg bg-white border border-[#DAE2FD] shrink-0 flex items-center gap-1">
                     <span class="material-symbols-rounded text-sm">shield</span> MENU
@@ -229,8 +229,8 @@
         <div class="fixed bottom-3 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 px-3 pointer-events-none no-print">
             <div class="bg-white/95 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#DAE2FD] pointer-events-auto p-1 flex items-center justify-around h-15">
 
-                @if(auth()->user()->isAsistenPelatih())
-                    {{-- ASISTEN PELATIH / PENGGUNA: EXACTLY 2 TABS (Beranda & Akun) --}}
+                @if(auth()->user()->isAsistenPelatih() || request()->routeIs('profile.*') || (auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin()))
+                    {{-- Asisten Pelatih and Admin/Pelatih use Dashboard and Akun tabs. --}}
                     <!-- Tab 1: Beranda -->
                     <a href="{{ route('dashboard') }}"
                        class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all relative {{ request()->routeIs('dashboard') ? 'text-[#0051D5] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
@@ -252,7 +252,7 @@
                     </a>
 
                 @else
-                    {{-- ADMIN / SUPERADMIN: Full Navigation Tabs --}}
+                    {{-- SUPERADMIN: Full Navigation Tabs --}}
                     <!-- Beranda -->
                     <a href="{{ route('dashboard') }}" class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'text-[#00288E] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
                         <span class="material-symbols-rounded text-[20px] {{ request()->routeIs('dashboard') ? 'fill' : '' }}">home</span>

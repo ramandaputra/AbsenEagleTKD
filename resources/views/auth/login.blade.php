@@ -362,6 +362,11 @@
                         return;
                     }
 
+                    if (this.pin.length !== 4) {
+                        this.errorMessage = 'PIN harus terdiri dari 4 angka.';
+                        return;
+                    }
+
                     this.isLoading = true;
                     this.errorMessage = null;
 

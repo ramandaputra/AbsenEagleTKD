@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -62,17 +63,49 @@ class ProfileController extends Controller
     /**
      * Change user PIN.
      */
-    public function updatePin(Request $request): RedirectResponse
+    public function updatePin(Request $request): JsonResponse|RedirectResponse
     {
-        $validated = $request->validate([
-            'pin' => ['required', 'string', 'size:4', 'regex:/^[0-9]{4}$/'],
+        $user = $request->user();
+
+        $rules = [
+            'old_pin' => ['required', 'string', 'regex:/^[0-9]{4}$/'],
+            'pin' => ['required', 'string', 'regex:/^[0-9]{4}$/'],
+            'pin_confirmation' => ['required', 'string', 'same:pin'],
+        ];
+
+        $validated = $request->validate($rules, [
+            'old_pin.required' => 'PIN lama wajib diisi.',
+            'old_pin.regex' => 'PIN lama harus terdiri dari 4 angka.',
+            'pin.required' => 'PIN baru wajib diisi.',
+            'pin.regex' => 'PIN baru harus terdiri dari 4 angka.',
+            'pin_confirmation.required' => 'Konfirmasi PIN baru wajib diisi.',
+            'pin_confirmation.same' => 'Konfirmasi PIN baru tidak sesuai.',
         ]);
 
-        $request->user()->update([
-            'pin' => $validated['pin'],
+        $currentPin = $user->pin ?: '1234';
+        if ($validated['old_pin'] !== (string) $currentPin) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'PIN lama tidak sesuai. Silakan periksa kembali.',
+                ], 422);
+            }
+            return back()->withErrors(['old_pin' => 'PIN lama tidak sesuai. Silakan periksa kembali.']);
+        }
+
+        $newPin = trim($validated['pin']);
+        $user->update([
+            'pin' => $newPin,
         ]);
 
-        return back()->with('success', 'PIN 4 digit presensi Anda berhasil diperbarui.');
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'PIN Presensi & Keamanan berhasil diperbarui.',
+            ]);
+        }
+
+        return back()->with('success', 'PIN Presensi & Keamanan berhasil diperbarui.');
     }
 
     /**

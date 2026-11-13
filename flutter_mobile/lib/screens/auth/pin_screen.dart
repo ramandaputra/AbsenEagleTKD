@@ -77,6 +77,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
       if (_enteredPin.length == 4) {
         _submitPin();
       }
+
     }
   }
 
@@ -182,6 +183,10 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
   }
 
   Future<void> _submitPin() async {
+    if (_enteredPin.length != 4) {
+      return;
+    }
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     final success = await authProvider.loginWithPin(

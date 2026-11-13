@@ -99,14 +99,24 @@ class DashboardController extends Controller
 
         // 2. Admin / Pelatih Utama Dashboard
         if ($user->isAdmin() && ! $user->isSuperAdmin()) {
+            $todaySchedules = TrainingSchedule::with('dutySchedule.assignments.user')
+                ->where('date', $todayDate)
+                ->orderBy('start_time', 'asc')
+                ->get();
+
             $todayAttendances = Attendance::with(['user', 'photos', 'trainingSchedule'])
                 ->where('date', $todayDate)
                 ->latest()
                 ->get();
 
-            $coaches = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))
-                ->where('is_active', true)
-                ->get()
+            $coachQuery = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))
+                ->where('is_active', true);
+
+            if ($user->dojang_id) {
+                $coachQuery->where('dojang_id', $user->dojang_id);
+            }
+
+            $coaches = $coachQuery->get()
                 ->map(function (User $coach) use ($currentMonth, $currentYear) {
                     $summary = $this->salaryService->calculateMonthlySummary($coach, $currentMonth, $currentYear);
                     $coach->monthly_summary = $summary;
@@ -123,6 +133,7 @@ class DashboardController extends Controller
 
             return view('dashboard.admin', compact(
                 'user',
+                'todaySchedules',
                 'todayAttendances',
                 'coaches',
                 'upcomingSchedules',

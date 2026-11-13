@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
-use App\Models\DutyAssignment;
 use App\Models\DutySchedule;
 use App\Models\TrainingSchedule;
 use App\Models\User;
@@ -29,7 +28,14 @@ class TrainingScheduleController extends Controller
             ->whereYear('date', $year);
 
         $schedules = $query->orderBy('date', 'asc')->orderBy('start_time', 'asc')->get();
-        $coaches = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))->where('is_active', true)->get();
+        $coachQuery = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))
+            ->where('is_active', true);
+
+        if (! $user->isSuperAdmin() && $user->dojang_id) {
+            $coachQuery->where('dojang_id', $user->dojang_id);
+        }
+
+        $coaches = $coachQuery->orderBy('name')->get();
 
         return view('schedules.index', compact('schedules', 'coaches', 'month', 'year'));
     }
@@ -45,58 +51,119 @@ class TrainingScheduleController extends Controller
         }
 
         $validated = $request->validate([
-            'activity_name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
-            'start_time' => ['required'],
-            'end_time' => ['required'],
-            'location' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'shift_name' => ['nullable', 'string', 'max:255'],
-            'duty_notes' => ['nullable', 'string', 'max:1000'],
-            'coaches' => ['nullable', 'array'],
-            'coaches.*' => ['exists:users,id'],
-            'role_tasks' => ['nullable', 'array'],
-            'materials' => ['nullable', 'array'],
+            'coaches' => ['required', 'array', 'min:1'],
+            'coaches.*' => ['required', 'integer', 'distinct', 'exists:users,id'],
         ]);
 
-        DB::transaction(function () use ($validated, $actor) {
-            $schedule = TrainingSchedule::create([
-                'activity_name' => $validated['activity_name'],
-                'date' => $validated['date'],
-                'start_time' => $validated['start_time'],
-                'end_time' => $validated['end_time'],
-                'location' => $validated['location'],
-                'description' => $validated['description'] ?? null,
-                'created_by' => $actor->id,
-            ]);
+        $coachQuery = User::whereKey($validated['coaches'])
+            ->whereHas('role', fn ($query) => $query->where('name', 'asisten_pelatih'))
+            ->where('is_active', true);
 
-            $dutySchedule = DutySchedule::create([
-                'training_schedule_id' => $schedule->id,
-                'shift_name' => $validated['shift_name'] ?? 'Piket Mengajar Utama',
-                'notes' => $validated['duty_notes'] ?? null,
-                'created_by' => $actor->id,
-            ]);
+        if (! $actor->isSuperAdmin() && $actor->dojang_id) {
+            $coachQuery->where('dojang_id', $actor->dojang_id);
+        }
 
-            if (! empty($validated['coaches'])) {
-                foreach ($validated['coaches'] as $index => $coachId) {
-                    DutyAssignment::create([
-                        'duty_schedule_id' => $dutySchedule->id,
-                        'user_id' => $coachId,
-                        'role_task' => $validated['role_tasks'][$index] ?? 'Instruktur Pendamping',
-                        'training_materials' => $validated['materials'][$index] ?? null,
+        $coaches = $coachQuery->get();
+
+        if ($coaches->count() !== count($validated['coaches'])) {
+            return back()
+                ->withErrors(['coaches' => 'Pilih asisten pelatih aktif yang tersedia untuk dojang Anda.'])
+                ->withInput();
+        }
+
+        DB::transaction(function () use ($validated, $actor, $coaches) {
+            $schedule = TrainingSchedule::firstOrCreate(
+                [
+                    'activity_name' => 'Latihan Reguler',
+                    'date' => $validated['date'],
+                ],
+                [
+                    'start_time' => '16:00:00',
+                    'end_time' => '18:00:00',
+                    'location' => $actor->dojang?->address ?: ($actor->dojang?->name ?? 'Dojang Eagle Pusat GOR Pajajaran'),
+                    'created_by' => $actor->id,
+                ]
+            );
+
+            $dutySchedule = DutySchedule::firstOrCreate(
+                ['training_schedule_id' => $schedule->id],
+                [
+                    'shift_name' => 'Piket Mengajar Utama',
+                    'created_by' => $actor->id,
+                ]
+            );
+
+            $coachIds = $coaches->modelKeys();
+            $dutySchedule->assignments()->whereNotIn('user_id', $coachIds)->delete();
+
+            foreach ($coaches as $coach) {
+                $dutySchedule->assignments()->firstOrCreate(
+                    ['user_id' => $coach->id],
+                    [
+                        'role_task' => 'Instruktur Pendamping',
                         'status' => 'assigned',
-                    ]);
-                }
+                    ]
+                );
             }
 
             ActivityLog::record(
                 $actor->id,
                 'CREATE_SCHEDULE',
-                "{$actor->name} menambahkan jadwal latihan baru: {$schedule->activity_name} ({$schedule->date->format('d/m/Y')}) dan menetapkan petugas piket."
+                "{$actor->name} menetapkan {$coaches->count()} asisten pelatih untuk latihan reguler tanggal {$schedule->date->format('d/m/Y')}."
             );
         });
 
-        return back()->with('success', 'Jadwal latihan dan penugasan piket asisten pelatih berhasil disimpan.');
+        return back()->with('success', 'Jadwal dan penugasan asisten pelatih berhasil disimpan.');
+    }
+
+    /**
+     * Save today's training description, creating the default schedule when needed.
+     */
+    public function updateTodayMaterials(Request $request): RedirectResponse
+    {
+        $actor = $request->user();
+        if (! $actor->isAdmin()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'date' => ['required', 'date'],
+            'description' => ['required', 'string', 'max:1000'],
+        ]);
+
+        if ($validated['date'] !== Carbon::now()->toDateString()) {
+            return back()
+                ->withErrors(['date' => 'Materi hanya dapat disimpan untuk tanggal hari ini.'])
+                ->withInput();
+        }
+
+        DB::transaction(function () use ($validated, $actor) {
+            $schedule = TrainingSchedule::firstOrCreate(
+                [
+                    'activity_name' => 'Latihan Reguler',
+                    'date' => $validated['date'],
+                ],
+                [
+                    'start_time' => '16:00:00',
+                    'end_time' => '18:00:00',
+                    'location' => $actor->dojang?->address ?: ($actor->dojang?->name ?? 'Dojang Eagle Pusat GOR Pajajaran'),
+                    'created_by' => $actor->id,
+                ]
+            );
+
+            $schedule->update([
+                'description' => $validated['description'],
+            ]);
+
+            ActivityLog::record(
+                $actor->id,
+                'UPDATE_TRAINING_MATERIAL',
+                "{$actor->name} menyimpan materi latihan tanggal {$schedule->date->format('d/m/Y')}."
+            );
+        });
+
+        return redirect()->route('dashboard')->with('success', 'Materi latihan hari ini berhasil diperbarui.');
     }
 
     /**
