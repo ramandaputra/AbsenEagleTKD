@@ -66,7 +66,7 @@ class SalaryController extends Controller
         $dojangId = $request->input('dojang_id');
 
         $query = User::with('dojang')
-            ->where('role', UserRole::AsistenPelatih)
+            ->whereHas('role', fn ($query) => $query->where('name', UserRole::AsistenPelatih->value))
             ->where('is_active', true);
 
         if (! $actor->isSuperAdmin()) {
@@ -81,7 +81,6 @@ class SalaryController extends Controller
 
         $payrollItems = [];
         $totalPayrollSum = 0;
-        $totalSessionsSum = 0;
 
         foreach ($coaches as $coach) {
             $summary = $this->salaryService->calculateMonthlySummary($coach, $month, $year);
@@ -90,8 +89,7 @@ class SalaryController extends Controller
                 'summary' => $summary,
                 'payroll' => $summary['payroll_record'],
             ];
-            $totalPayrollSum += $summary['total_estimated_salary'];
-            $totalSessionsSum += $summary['total_approved_sessions'];
+            $totalPayrollSum += $summary['base_salary'];
         }
 
         $allDojangs = Dojang::where('is_active', true)->get();
@@ -110,7 +108,6 @@ class SalaryController extends Controller
             'allDojangs',
             'payrollItems',
             'totalPayrollSum',
-            'totalSessionsSum',
             'monthNames'
         ));
     }
@@ -178,10 +175,14 @@ class SalaryController extends Controller
 
         $month = (int) $request->input('month', Carbon::now()->month);
         $year = (int) $request->input('year', Carbon::now()->year);
+        $dojangId = $request->input('dojang_id');
 
-        $query = User::where('role', UserRole::AsistenPelatih)->where('is_active', true);
+        $query = User::whereHas('role', fn ($query) => $query->where('name', UserRole::AsistenPelatih->value))
+            ->where('is_active', true);
         if (! $actor->isSuperAdmin() && $actor->dojang_id) {
             $query->where('dojang_id', $actor->dojang_id);
+        } elseif ($actor->isSuperAdmin() && $dojangId) {
+            $query->where('dojang_id', $dojangId);
         }
 
         $coaches = $query->get();
@@ -210,7 +211,11 @@ class SalaryController extends Controller
             $generatedCount++;
         }
 
-        return back()->with('success', "Berhasil menghitung dan memperbarui rekap gaji untuk {$generatedCount} asisten pelatih periode {$month}/{$year}.");
+        return redirect()->route('salary.admin.index', [
+            'month' => $month,
+            'year' => $year,
+            'dojang_id' => $dojangId,
+        ])->with('success', "Berhasil menghitung dan memperbarui rekap gaji untuk {$generatedCount} asisten pelatih periode {$month}/{$year}.");
     }
 
     /**

@@ -167,7 +167,7 @@
                     Laporan & Export
                 </a>
                 <a href="{{ route('salary.admin.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('salary.admin.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                    Rekap Honor
+                    Rekap Hadir & Gaji
                 </a>
                 <a href="{{ route('activity-logs.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('activity-logs.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
                     Log Aktivitas

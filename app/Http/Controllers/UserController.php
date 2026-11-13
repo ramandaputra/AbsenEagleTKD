@@ -21,16 +21,16 @@ class UserController extends Controller
         $roleFilter = $request->input('role');
         $dojangFilter = $request->input('dojang_id');
 
-        $query = User::with('dojang');
+        $query = User::with(['dojang', 'role']);
 
         if ($roleFilter) {
-            $query->where('role', $roleFilter);
+            $query->whereHas('role', fn ($query) => $query->where('name', $roleFilter));
         }
         if ($dojangFilter) {
             $query->where('dojang_id', $dojangFilter);
         }
 
-        $users = $query->orderBy('role')->orderBy('name')->paginate(15)->withQueryString();
+        $users = $query->orderBy('role_id')->orderBy('name')->paginate(15)->withQueryString();
         $dojangs = Dojang::where('is_active', true)->get();
 
         return view('users.index', compact('users', 'dojangs', 'roleFilter', 'dojangFilter'));

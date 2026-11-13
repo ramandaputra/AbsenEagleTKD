@@ -75,10 +75,10 @@ class ApiSalaryController extends Controller
         $year = (int) $request->input('year', Carbon::now()->year);
 
         $query = User::with('dojang')
-            ->where('role', UserRole::AsistenPelatih)
+            ->whereHas('role', fn ($query) => $query->where('name', UserRole::AsistenPelatih->value))
             ->where('is_active', true);
 
-        if ($actor->role === UserRole::Admin && $actor->dojang_id) {
+        if (! $actor->isSuperAdmin() && $actor->dojang_id) {
             $query->where('dojang_id', $actor->dojang_id);
         }
 
