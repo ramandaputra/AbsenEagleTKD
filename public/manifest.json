@@ -1,0 +1,22 @@
+{
+  "name": "Eagle TKD - Absensi & Gaji Pelatih",
+  "short_name": "Eagle TKD",
+  "description": "Aplikasi Absensi Latihan Taekwondo dan Perhitungan Honor Asisten Pelatih",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#dc2626",
+  "icons": [
+    {
+      "src": "/images/icon-eagle.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/images/icon-eagle.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
+
