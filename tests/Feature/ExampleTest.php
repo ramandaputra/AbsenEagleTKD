@@ -129,12 +129,15 @@ class ExampleTest extends TestCase
         $beranda->assertSee('Beranda');
         $beranda->assertSee('Akun');
 
-        // 2. Akun (Profile)
+        // 2. Akun (Profile) - hanya PIN, tanpa Informasi Kepelatihan/Rekening/Kata Sandi
         $akun = $this->actingAs($user)->get('/profile');
         $akun->assertStatus(200);
-        $akun->assertSee('Informasi Kepelatihan');
-        $akun->assertSee('Rekening Transfer Honor');
         $akun->assertSee('Ubah PIN Presensi (4 Digit)');
+        $akun->assertSee('Keluar dari Akun');
+        $akun->assertDontSee('Informasi Kepelatihan');
+        $akun->assertDontSee('Rekening Transfer Honor');
+        $akun->assertDontSee('Ubah Kata Sandi Akun');
+        $akun->assertDontSee('Simpan Perubahan Profil');
     }
 
     /**
@@ -169,7 +172,7 @@ class ExampleTest extends TestCase
 
     public function test_attendance_check_in_screen_has_camera_switch_and_no_gallery_upload(): void
     {
-        $role = \App\Models\Role::firstOrCreate(['name' => 'asisten_pelatih'], ['label' => 'Asisten Pelatih']);
+        $role = \App\Models\Role::firstOrCreate(['name' => 'asisten_pelatih'], ['display_name' => 'Asisten Pelatih']);
         $user = \App\Models\User::create([
             'name' => 'Raja',
             'email' => 'raja2@eagletkd.com',
