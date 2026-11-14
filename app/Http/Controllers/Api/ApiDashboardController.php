@@ -25,7 +25,7 @@ class ApiDashboardController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user()->load('role');
-        $now = Carbon::now();
+        $now = Carbon::now('Asia/Jakarta');
         $todayStr = $now->format('Y-m-d');
         $startOfMonth = $now->copy()->startOfMonth()->format('Y-m-d');
         $endOfMonth = $now->copy()->endOfMonth()->format('Y-m-d');

@@ -6,7 +6,6 @@ use App\Models\ActivityLog;
 use App\Models\Attendance;
 use App\Models\AttendancePhoto;
 use App\Models\TrainingSchedule;
-use App\Models\User;
 use App\Services\SalaryCalculationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -22,53 +21,39 @@ class AttendanceController extends Controller
     ) {}
 
     /**
-     * Display a listing of attendances.
+     * Redirect the old attendance list to the relevant detail or dashboard.
      */
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $month = (int) $request->input('month', Carbon::now()->month);
-        $year = (int) $request->input('year', Carbon::now()->year);
-        $status = $request->input('status');
-        $coachId = $request->input('coach_id');
-
-        $query = Attendance::with(['user.role', 'trainingSchedule', 'photos', 'dutyAssignment']);
-
         if ($user->isAsistenPelatih()) {
-            $query->where('user_id', $user->id);
-        } elseif ($coachId) {
-            $query->where('user_id', $coachId);
+            $latestAttendance = Attendance::where('user_id', $user->id)
+                ->orderByDesc('date')
+                ->orderByDesc('time')
+                ->first();
+
+            if ($latestAttendance) {
+                return redirect()->route('attendances.show', $latestAttendance);
+            }
         }
 
-        if ($status) {
-            $query->where('status', $status);
+        return redirect()->route('dashboard');
+    }
+
+    /**
+     * Display a single attendance record with its submitted photos.
+     */
+    public function show(Request $request, Attendance $attendance): View
+    {
+        $user = $request->user();
+
+        if (! $user->isAdmin() && (int) $attendance->user_id !== (int) $user->id) {
+            abort(404);
         }
 
-        if ($startDate && $endDate) {
-            $query->whereBetween('date', [$startDate, $endDate]);
-        } else {
-            $query->whereMonth('date', $month)->whereYear('date', $year);
-        }
+        $attendance->load(['user.role', 'trainingSchedule', 'photos', 'dutyAssignment.dutySchedule']);
 
-        $attendances = $query->orderBy('date', 'desc')
-            ->orderBy('time', 'desc')
-            ->paginate(15)
-            ->withQueryString();
-
-        $allCoaches = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))->where('is_active', true)->get();
-
-        return view('attendances.index', compact(
-            'attendances',
-            'month',
-            'year',
-            'startDate',
-            'endDate',
-            'status',
-            'coachId',
-            'allCoaches'
-        ));
+        return view('attendances.show', compact('attendance'));
     }
 
     /**
@@ -77,7 +62,7 @@ class AttendanceController extends Controller
     public function create(Request $request): View
     {
         $user = $request->user();
-        $now = Carbon::now();
+        $now = Carbon::now('Asia/Jakarta');
         $todayDate = $now->format('Y-m-d');
 
         $existingToday = Attendance::with(['trainingSchedule', 'photos'])
@@ -108,7 +93,7 @@ class AttendanceController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $now = Carbon::now();
+        $now = Carbon::now('Asia/Jakarta');
 
         $validated = $request->validate([
             'training_schedule_id' => ['nullable', 'exists:training_schedules,id'],
@@ -174,7 +159,7 @@ class AttendanceController extends Controller
             "Asisten Pelatih {$user->name} mencatat absensi {$attendance->status} ({$attendance->date->format('d/m/Y')} {$attendance->time})."
         );
 
-        return redirect()->route('attendances.index')
+        return redirect()->route('attendances.show', $attendance)
             ->with('success', "Absensi mandiri ({$attendance->status}) berhasil disimpan otomatis dengan bukti foto.");
     }
 

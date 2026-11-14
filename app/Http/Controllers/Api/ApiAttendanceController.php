@@ -55,7 +55,7 @@ class ApiAttendanceController extends Controller
     public function checkIn(Request $request): JsonResponse
     {
         $user = $request->user();
-        $now = Carbon::now();
+        $now = Carbon::now('Asia/Jakarta');
         $todayDate = $now->format('Y-m-d');
         $scheduleId = $request->input('training_schedule_id');
 

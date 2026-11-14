@@ -12,6 +12,7 @@
     <link rel="shortcut icon" href="{{ asset('images/icon-eagle.jpg') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/icon-eagle.jpg') }}">
     <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -118,6 +119,15 @@
                 @else
                     <!-- Default Main Tab Header (Avatar + Title + Subtitle) -->
                     <div class="flex items-center space-x-3 w-full min-w-0">
+                        @if(request()->routeIs('schedules.index') || request()->routeIs('salary.admin.index') || request()->routeIs('attendances.show'))
+                            <a href="{{ route('dashboard') }}"
+                               onclick="if (document.referrer && new URL(document.referrer).origin === window.location.origin) { window.history.back(); return false; }"
+                               aria-label="Kembali" title="Kembali"
+                               class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#131B2E] transition-colors hover:bg-[#EAEDFF]">
+                                <i class="bi bi-chevron-left text-lg" aria-hidden="true"></i>
+                            </a>
+                        @endif
+
                         <!-- Avatar with Online Ring Dot -->
                         <div class="relative shrink-0">
                             <div class="w-9 h-9 rounded-full ring-2 ring-[#0051D5]/30 bg-gradient-to-tr from-[#00288E] to-[#0051D5] text-white font-bold flex items-center justify-center text-xs shadow-xs overflow-hidden shrink-0">
@@ -161,13 +171,13 @@
                     <span class="material-symbols-rounded text-sm">shield</span> MENU
                 </span>
                 <a href="{{ route('schedules.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('schedules.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                    Jadwal & Piket
+                    Jadwal, Piket & Materi
                 </a>
                 <a href="{{ route('reports.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('reports.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
                     Laporan & Export
                 </a>
                 <a href="{{ route('salary.admin.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('salary.admin.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                    Rekap Hadir & Gaji
+                    Rekap Gaji & Tarif
                 </a>
                 <a href="{{ route('activity-logs.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('activity-logs.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
                     Log Aktivitas
@@ -279,15 +289,6 @@
                             </div>
                         </div>
                         <span class="text-[9.5px] font-bold text-[#00288E] mt-0.5">Check-in</span>
-                    </a>
-
-                    <!-- Riwayat -->
-                    <a href="{{ route('attendances.index') }}" class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all {{ request()->routeIs('attendances.index') ? 'text-[#00288E] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
-                        <span class="material-symbols-rounded text-[20px] {{ request()->routeIs('attendances.index') ? 'fill' : '' }}">fact_check</span>
-                        <span class="text-[10px] mt-0.5">Riwayat</span>
-                        @if(request()->routeIs('attendances.index'))
-                            <div class="w-1 h-1 rounded-full bg-[#00288E] mt-0.5"></div>
-                        @endif
                     </a>
 
                     <!-- Akun -->

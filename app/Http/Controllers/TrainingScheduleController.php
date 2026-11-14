@@ -7,6 +7,7 @@ use App\Models\DutySchedule;
 use App\Models\TrainingSchedule;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,13 +31,9 @@ class TrainingScheduleController extends Controller
         $schedules = $query->orderBy('date', 'asc')->orderBy('start_time', 'asc')->get();
         $coachQuery = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))
             ->where('is_active', true);
-
-        if (! $user->isSuperAdmin() && $user->dojang_id) {
-            $coachQuery->where('dojang_id', $user->dojang_id);
-        }
+        $this->constrainCoachQueryForActor($coachQuery, $user);
 
         $coaches = $coachQuery->orderBy('name')->get();
-
         return view('schedules.index', compact('schedules', 'coaches', 'month', 'year'));
     }
 
@@ -52,6 +49,8 @@ class TrainingScheduleController extends Controller
 
         $validated = $request->validate([
             'date' => ['required', 'date'],
+            'activity_name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
             'coaches' => ['required', 'array', 'min:1'],
             'coaches.*' => ['required', 'integer', 'distinct', 'exists:users,id'],
         ]);
@@ -60,9 +59,7 @@ class TrainingScheduleController extends Controller
             ->whereHas('role', fn ($query) => $query->where('name', 'asisten_pelatih'))
             ->where('is_active', true);
 
-        if (! $actor->isSuperAdmin() && $actor->dojang_id) {
-            $coachQuery->where('dojang_id', $actor->dojang_id);
-        }
+        $this->constrainCoachQueryForActor($coachQuery, $actor);
 
         $coaches = $coachQuery->get();
 
@@ -75,16 +72,23 @@ class TrainingScheduleController extends Controller
         DB::transaction(function () use ($validated, $actor, $coaches) {
             $schedule = TrainingSchedule::firstOrCreate(
                 [
-                    'activity_name' => 'Latihan Reguler',
+                    'activity_name' => $validated['activity_name'],
                     'date' => $validated['date'],
                 ],
                 [
                     'start_time' => '16:00:00',
                     'end_time' => '18:00:00',
                     'location' => $actor->dojang?->address ?: ($actor->dojang?->name ?? 'Dojang Eagle Pusat GOR Pajajaran'),
+                    'description' => $validated['description'] ?? null,
                     'created_by' => $actor->id,
                 ]
             );
+
+            if (! $schedule->wasRecentlyCreated) {
+                $schedule->update([
+                    'description' => $validated['description'] ?? null,
+                ]);
+            }
 
             $dutySchedule = DutySchedule::firstOrCreate(
                 ['training_schedule_id' => $schedule->id],
@@ -110,60 +114,11 @@ class TrainingScheduleController extends Controller
             ActivityLog::record(
                 $actor->id,
                 'CREATE_SCHEDULE',
-                "{$actor->name} menetapkan {$coaches->count()} asisten pelatih untuk latihan reguler tanggal {$schedule->date->format('d/m/Y')}."
+                "{$actor->name} menetapkan {$coaches->count()} asisten pelatih untuk {$schedule->activity_name} tanggal {$schedule->date->format('d/m/Y')}."
             );
         });
 
-        return back()->with('success', 'Jadwal dan penugasan asisten pelatih berhasil disimpan.');
-    }
-
-    /**
-     * Save today's training description, creating the default schedule when needed.
-     */
-    public function updateTodayMaterials(Request $request): RedirectResponse
-    {
-        $actor = $request->user();
-        if (! $actor->isAdmin()) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'date' => ['required', 'date'],
-            'description' => ['required', 'string', 'max:1000'],
-        ]);
-
-        if ($validated['date'] !== Carbon::now()->toDateString()) {
-            return back()
-                ->withErrors(['date' => 'Materi hanya dapat disimpan untuk tanggal hari ini.'])
-                ->withInput();
-        }
-
-        DB::transaction(function () use ($validated, $actor) {
-            $schedule = TrainingSchedule::firstOrCreate(
-                [
-                    'activity_name' => 'Latihan Reguler',
-                    'date' => $validated['date'],
-                ],
-                [
-                    'start_time' => '16:00:00',
-                    'end_time' => '18:00:00',
-                    'location' => $actor->dojang?->address ?: ($actor->dojang?->name ?? 'Dojang Eagle Pusat GOR Pajajaran'),
-                    'created_by' => $actor->id,
-                ]
-            );
-
-            $schedule->update([
-                'description' => $validated['description'],
-            ]);
-
-            ActivityLog::record(
-                $actor->id,
-                'UPDATE_TRAINING_MATERIAL',
-                "{$actor->name} menyimpan materi latihan tanggal {$schedule->date->format('d/m/Y')}."
-            );
-        });
-
-        return redirect()->route('dashboard')->with('success', 'Materi latihan hari ini berhasil diperbarui.');
+        return back()->with('success', 'Jadwal, deskripsi, dan penugasan asisten pelatih berhasil disimpan.');
     }
 
     /**
@@ -186,6 +141,19 @@ class TrainingScheduleController extends Controller
         );
 
         return back()->with('success', 'Jadwal latihan berhasil dihapus.');
+    }
+
+    /**
+     * Include coaches assigned to the actor's branch and coaches available to all branches.
+     */
+    private function constrainCoachQueryForActor(Builder $coachQuery, User $actor): void
+    {
+        if (! $actor->isSuperAdmin() && $actor->dojang_id) {
+            $coachQuery->where(function (Builder $query) use ($actor): void {
+                $query->where('dojang_id', $actor->dojang_id)
+                    ->orWhereNull('dojang_id');
+            });
+        }
     }
 }
 

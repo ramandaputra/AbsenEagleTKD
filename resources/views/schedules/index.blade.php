@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Jadwal Latihan')
+@section('title', 'Jadwal, Tugas & Materi')
 
 @section('content')
 @php
@@ -19,14 +19,14 @@
                     Latihan &amp; Penugasan
                 </span>
                 <h1 class="mt-1.5 text-sm font-extrabold tracking-tight">Jadwal Latihan</h1>
-                <p class="mt-0.5 text-[11px] font-medium text-[#7DD3FC]">Daftar latihan dan asisten pelatih yang bertugas.</p>
+                <p class="mt-0.5 text-[11px] font-medium text-[#7DD3FC]">Atur jadwal, tugas asisten, dan materi latihan hari ini.</p>
             </div>
 
             @if(auth()->user()->isAdmin())
                 <button type="button" @click="showAddModal = true"
                         class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-[11px] font-bold text-[#00288E] shadow-sm transition-colors hover:bg-[#EAEDFF]">
                     <span class="material-symbols-rounded text-base">add</span>
-                    Atur Jadwal
+                    Tambah Jadwal
                 </button>
             @endif
         </div>
@@ -69,7 +69,7 @@
                 <button type="button" @click="showAddModal = true"
                         class="mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#0051D5] px-3.5 text-[11px] font-bold text-white transition-colors hover:bg-[#003EA8]">
                     <span class="material-symbols-rounded text-base">add</span>
-                    Atur Jadwal
+                    Tambah Jadwal
                 </button>
             @endif
         </section>
@@ -161,7 +161,7 @@
         <div x-show="showAddModal" x-cloak
              x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
              class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-            <div class="w-full max-w-md space-y-4 rounded-2xl border border-[#DAE2FD] bg-white p-4 shadow-2xl"
+            <div class="max-h-[90vh] w-full max-w-md space-y-4 overflow-y-auto rounded-2xl border border-[#DAE2FD] bg-white p-4 shadow-2xl"
                  @click.away="showAddModal = false">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-2.5">
@@ -169,8 +169,8 @@
                             <span class="material-symbols-rounded">event_available</span>
                         </span>
                         <div>
-                            <h2 class="text-sm font-bold text-[#131B2E]">Atur Jadwal</h2>
-                            <p class="mt-0.5 text-[10.5px] text-[#64748B]">Pilih tanggal dan asisten yang bertugas.</p>
+                            <h2 class="text-sm font-bold text-[#131B2E]">Tambah Jadwal Latihan</h2>
+                            <p class="mt-0.5 text-[10.5px] text-[#64748B]">Isi tanggal, judul, deskripsi, dan asisten yang bertugas.</p>
                         </div>
                     </div>
                     <button type="button" @click="showAddModal = false" title="Tutup"
@@ -181,6 +181,7 @@
 
                 <form action="{{ route('schedules.store') }}" method="POST" class="space-y-3 text-xs">
                     @csrf
+                    <input type="hidden" name="form_type" value="schedule">
 
                     @if($errors->any())
                         <div class="space-y-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2">
@@ -194,6 +195,20 @@
                         <label for="schedule-date" class="mb-1 block text-[10.5px] font-semibold text-[#131B2E]">Tanggal Latihan</label>
                         <input id="schedule-date" type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" required
                                class="h-10 w-full rounded-xl border border-[#DAE2FD] bg-white px-3 text-xs text-[#131B2E] focus:border-[#0051D5] focus:outline-none focus:ring-2 focus:ring-[#0051D5]/10">
+                    </div>
+
+                    <div>
+                        <label for="schedule-title" class="mb-1 block text-[10.5px] font-semibold text-[#131B2E]">Judul Latihan</label>
+                        <input id="schedule-title" type="text" name="activity_name" value="{{ old('activity_name') }}" maxlength="255" required
+                               placeholder="Contoh: Latihan Reguler atau Persiapan Kejuaraan"
+                               class="h-10 w-full rounded-xl border border-[#DAE2FD] bg-white px-3 text-xs text-[#131B2E] placeholder:text-[#94A3B8] focus:border-[#0051D5] focus:outline-none focus:ring-2 focus:ring-[#0051D5]/10">
+                    </div>
+
+                    <div>
+                        <label for="schedule-description" class="mb-1 block text-[10.5px] font-semibold text-[#131B2E]">Deskripsi Latihan</label>
+                        <textarea id="schedule-description" name="description" rows="3" maxlength="1000"
+                                  placeholder="Tuliskan materi atau fokus latihan"
+                                  class="w-full rounded-xl border border-[#DAE2FD] bg-white p-2.5 text-xs text-[#131B2E] placeholder:text-[#94A3B8] focus:border-[#0051D5] focus:outline-none focus:ring-2 focus:ring-[#0051D5]/10">{{ old('description') }}</textarea>
                     </div>
 
                     <div class="space-y-2 rounded-xl border border-[#DAE2FD]/70 bg-[#F8FAFC] p-3">
@@ -248,7 +263,7 @@ function scheduleManager() {
         assignedRows: @js($oldCoachIds).map(coachId => ({ coachId: String(coachId) })),
 
         init() {
-            if (@js($errors->any())) {
+            if (@js(old('form_type') === 'schedule')) {
                 this.showAddModal = true;
             }
         },

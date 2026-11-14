@@ -40,12 +40,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
     Route::get('/attendances/check-in', [AttendanceController::class, 'create'])->name('attendances.create');
     Route::post('/attendances/check-in', [AttendanceController::class, 'store'])->name('attendances.store');
+    Route::get('/attendances/{attendance}', [AttendanceController::class, 'show'])->name('attendances.show');
     Route::put('/attendances/{attendance}', [AttendanceController::class, 'update'])->name('attendances.update');
 
     // Schedules & Duty Piket Mengajar
     Route::get('/schedules', [TrainingScheduleController::class, 'index'])->name('schedules.index');
     Route::post('/schedules', [TrainingScheduleController::class, 'store'])->name('schedules.store');
-    Route::put('/schedules/materials/today', [TrainingScheduleController::class, 'updateTodayMaterials'])->name('schedules.materials.today');
     Route::delete('/schedules/{schedule}', [TrainingScheduleController::class, 'destroy'])->name('schedules.destroy');
 
     // Personal Salary / Honor
@@ -68,7 +68,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/salary/slip/{coach}/{month}/{year}', [SalaryController::class, 'adminSlip'])->name('salary.admin.slip');
         Route::post('/admin/salary/generate', [SalaryController::class, 'adminGenerateAll'])->name('salary.admin.generate');
         Route::post('/admin/salary/{coach}/adjustment', [SalaryController::class, 'updateAdjustment'])->name('salary.admin.adjustment');
-        Route::post('/admin/salary/{payroll}/status', [SalaryController::class, 'updateStatus'])->name('salary.admin.status');
     });
 
     // Superadmin Only Group

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
-use App\Enums\PaymentStatus;
 use App\Enums\UserRole;
 use App\Models\Dojang;
 use App\Models\Payroll;
@@ -44,6 +43,7 @@ class SalaryController extends Controller
 
         return view('salary.slip', [
             'coach' => $user,
+            'backUrl' => route('salary.index', ['month' => $month, 'year' => $year]),
             'month' => $month,
             'year' => $year,
             'summary' => $summary,
@@ -71,7 +71,10 @@ class SalaryController extends Controller
 
         if (! $actor->isSuperAdmin()) {
             if ($actor->dojang_id) {
-                $query->where('dojang_id', $actor->dojang_id);
+                $query->where(function ($query) use ($actor) {
+                    $query->where('dojang_id', $actor->dojang_id)
+                        ->orWhereNull('dojang_id');
+                });
             }
         } elseif ($dojangId) {
             $query->where('dojang_id', $dojangId);
@@ -122,20 +125,21 @@ class SalaryController extends Controller
             abort(403);
         }
 
-        if (! $actor->isSuperAdmin() && $actor->dojang_id && $actor->dojang_id !== $coach->dojang_id) {
+        if (! $actor->isSuperAdmin() && $actor->dojang_id && $coach->dojang_id && $actor->dojang_id !== $coach->dojang_id) {
             abort(403);
         }
 
         $validated = $request->validate([
             'coach_id' => ['required', 'integer', 'in:'.$coach->id],
-            'rate_per_session' => ['required', 'numeric', 'min:0'],
+            'rate_per_session' => ['required', 'integer', 'min:0'],
         ]);
 
         $coach->update([
             'rate_per_session' => $validated['rate_per_session'],
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Tarif honor per pertemuan untuk '.$coach->name.' berhasil diperbarui.');
+        return redirect()->route('salary.admin.index', $request->only(['month', 'year', 'dojang_id']))
+            ->with('success', 'Tarif honor per pertemuan untuk '.$coach->name.' berhasil diperbarui.');
     }
 
     /**
@@ -148,7 +152,7 @@ class SalaryController extends Controller
             abort(403);
         }
 
-        if (! $actor->isSuperAdmin() && $actor->dojang_id && $actor->dojang_id !== $coach->dojang_id) {
+        if (! $actor->isSuperAdmin() && $actor->dojang_id && $coach->dojang_id && $actor->dojang_id !== $coach->dojang_id) {
             abort(403);
         }
 
@@ -156,6 +160,11 @@ class SalaryController extends Controller
 
         return view('salary.slip', [
             'coach' => $coach,
+            'backUrl' => route('salary.admin.index', array_filter([
+                'month' => $month,
+                'year' => $year,
+                'dojang_id' => $request->query('dojang_id'),
+            ], fn ($value) => $value !== null && $value !== '')),
             'month' => $month,
             'year' => $year,
             'summary' => $summary,
@@ -180,7 +189,10 @@ class SalaryController extends Controller
         $query = User::whereHas('role', fn ($query) => $query->where('name', UserRole::AsistenPelatih->value))
             ->where('is_active', true);
         if (! $actor->isSuperAdmin() && $actor->dojang_id) {
-            $query->where('dojang_id', $actor->dojang_id);
+            $query->where(function ($query) use ($actor) {
+                $query->where('dojang_id', $actor->dojang_id)
+                    ->orWhereNull('dojang_id');
+            });
         } elseif ($actor->isSuperAdmin() && $dojangId) {
             $query->where('dojang_id', $dojangId);
         }
@@ -250,35 +262,5 @@ class SalaryController extends Controller
         return back()->with('success', 'Rincian bonus & potongan honor berhasil diperbarui.');
     }
 
-    /**
-     * Update payment status (mark as Paid / Lunas or Approved).
-     */
-    public function updateStatus(Request $request, Payroll $payroll): RedirectResponse
-    {
-        $actor = $request->user();
-        if (! $actor->isAdmin()) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'payment_status' => ['required', 'in:draft,approved,paid'],
-            'payment_method' => ['required', 'in:transfer,cash'],
-            'payment_date' => ['nullable', 'date'],
-            'payment_notes' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $payroll->update([
-            'payment_status' => PaymentStatus::from($validated['payment_status']),
-            'payment_method' => PaymentMethod::from($validated['payment_method']),
-            'payment_date' => $validated['payment_status'] === 'paid' ? ($validated['payment_date'] ?? Carbon::now()->format('Y-m-d')) : null,
-            'payment_notes' => $validated['payment_notes'],
-            'approved_by' => $actor->id,
-            'approved_at' => Carbon::now(),
-        ]);
-
-        $statusLabel = $payroll->payment_status->label();
-
-        return back()->with('success', "Status pembayaran gaji asisten pelatih berhasil diubah menjadi: {$statusLabel}.");
-    }
 }
 

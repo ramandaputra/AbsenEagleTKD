@@ -25,7 +25,7 @@ class DashboardController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user()->load(['role', 'dojang']);
-        $now = Carbon::now();
+        $now = Carbon::now('Asia/Jakarta');
         $currentMonth = $now->month;
         $currentYear = $now->year;
         $todayDate = $now->format('Y-m-d');
@@ -99,11 +99,6 @@ class DashboardController extends Controller
 
         // 2. Admin / Pelatih Utama Dashboard
         if ($user->isAdmin() && ! $user->isSuperAdmin()) {
-            $todaySchedules = TrainingSchedule::with('dutySchedule.assignments.user')
-                ->where('date', $todayDate)
-                ->orderBy('start_time', 'asc')
-                ->get();
-
             $todayAttendances = Attendance::with(['user', 'photos', 'trainingSchedule'])
                 ->where('date', $todayDate)
                 ->latest()
@@ -113,16 +108,30 @@ class DashboardController extends Controller
                 ->where('is_active', true);
 
             if ($user->dojang_id) {
-                $coachQuery->where('dojang_id', $user->dojang_id);
+                $coachQuery->where(function ($query) use ($user) {
+                    $query->where('dojang_id', $user->dojang_id)
+                        ->orWhereNull('dojang_id');
+                });
             }
 
-            $coaches = $coachQuery->get()
-                ->map(function (User $coach) use ($currentMonth, $currentYear) {
-                    $summary = $this->salaryService->calculateMonthlySummary($coach, $currentMonth, $currentYear);
-                    $coach->monthly_summary = $summary;
+            $coaches = $coachQuery->get();
+            $monthlyAttendanceCounts = Attendance::query()
+                ->selectRaw('user_id, COUNT(*) as total_hadir')
+                ->where('status', 'Hadir')
+                ->whereBetween('date', [
+                    $now->copy()->startOfMonth()->toDateString(),
+                    $now->copy()->endOfMonth()->toDateString(),
+                ])
+                ->whereIn('user_id', $coaches->modelKeys())
+                ->groupBy('user_id')
+                ->pluck('total_hadir', 'user_id');
 
-                    return $coach;
-                });
+            $coaches->each(function (User $coach) use ($currentMonth, $currentYear, $monthlyAttendanceCounts) {
+                $summary = $this->salaryService->calculateMonthlySummary($coach, $currentMonth, $currentYear);
+                $coach->monthly_summary = $summary;
+                $coach->monthly_hadir_count = (int) $monthlyAttendanceCounts->get($coach->id, 0);
+            });
+            $activeAssistantCount = $coaches->count();
 
             $upcomingSchedules = TrainingSchedule::with('dutySchedule.assignments.user')
                 ->where('date', '>=', $todayDate)
@@ -133,9 +142,9 @@ class DashboardController extends Controller
 
             return view('dashboard.admin', compact(
                 'user',
-                'todaySchedules',
                 'todayAttendances',
                 'coaches',
+                'activeAssistantCount',
                 'upcomingSchedules',
                 'currentMonth',
                 'currentYear',
