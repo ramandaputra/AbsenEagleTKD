@@ -219,7 +219,7 @@
             <div class="space-y-2.5">
                 @forelse($todayAttendances as $attendance)
                     @php
-                        $activityName = $attendance->trainingSchedule?->activity_name ?? 'Latihan Mandiri';
+                        $activityName = $attendance->trainingSchedule?->activity_name ?? 'Latihan';
                         $statusClasses = match ($attendance->status) {
                             'Hadir' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                             'Izin' => 'bg-amber-50 text-amber-700 border-amber-200',
@@ -245,23 +245,26 @@
                                     </p>
                                 </div>
                             </div>
-
-                            <div class="text-right shrink-0">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $statusClasses }}">
+                            <div class="flex shrink-0 items-center gap-1.5">
+                                <span class="px-2 py-1 rounded-full border text-[9.5px] font-bold {{ $statusClasses }}">
                                     {{ $attendance->status }}
                                 </span>
                                 <a href="{{ route('attendances.show', $attendance) }}"
-                                   class="block text-[10px] font-bold text-[#0051D5] hover:underline mt-1">
-                                    Lihat Bukti &rarr;
+                                   aria-label="Lihat detail absensi {{ $attendance->user?->name ?? 'pengguna' }}"
+                                   class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#64748B] transition-colors hover:bg-[#EAEDFF] hover:text-[#0051D5]">
+                                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
                                 </a>
                             </div>
                         </div>
+                        @if($attendance->notes)
+                            <p class="mt-2 pt-2 border-t border-[#F1F5F9] text-[11px] text-[#64748B] leading-snug">{{ $attendance->notes }}</p>
+                        @endif
                     </article>
                 @empty
-                    <div class="bg-white rounded-2xl border border-[#DAE2FD] p-6 text-center text-[#64748B]">
-                        <span class="material-symbols-rounded text-3xl text-slate-300">fact_check</span>
-                        <p class="text-xs font-semibold text-[#131B2E] mt-1">Belum Ada Presensi Hari Ini</p>
-                        <p class="text-[10.5px] text-[#64748B] mt-0.5">Presensi asisten pelatih yang masuk akan tampil otomatis di sini.</p>
+                    <div class="py-8 text-center bg-white rounded-2xl border border-[#DAE2FD] px-5 shadow-xs">
+                        <span class="material-symbols-rounded text-4xl text-slate-300">event_busy</span>
+                        <h3 class="text-xs font-bold text-slate-800 mt-2">Belum Ada Presensi Hari Ini</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Presensi asisten pelatih akan muncul di sini.</p>
                     </div>
                 @endforelse
             </div>
