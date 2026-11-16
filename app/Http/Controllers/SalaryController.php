@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
 use App\Enums\UserRole;
+use App\Models\ActivityLog;
 use App\Models\Dojang;
 use App\Models\Payroll;
 use App\Models\User;
@@ -138,6 +139,12 @@ class SalaryController extends Controller
             'rate_per_session' => $validated['rate_per_session'],
         ]);
 
+        ActivityLog::record(
+            $actor->id,
+            'UPDATE_RATE',
+            "{$actor->name} memperbarui tarif honor {$coach->name} menjadi Rp " . number_format($validated['rate_per_session'], 0, ',', '.') . " per sesi."
+        );
+
         return redirect()->route('salary.admin.index', $request->only(['month', 'year', 'dojang_id']))
             ->with('success', 'Tarif honor per pertemuan untuk '.$coach->name.' berhasil diperbarui.');
     }
@@ -222,6 +229,12 @@ class SalaryController extends Controller
 
             $generatedCount++;
         }
+
+        ActivityLog::record(
+            $actor->id,
+            'GENERATE_PAYROLL',
+            "{$actor->name} merekapitulasi honor {$generatedCount} asisten pelatih untuk periode {$month}/{$year}."
+        );
 
         return redirect()->route('salary.admin.index', [
             'month' => $month,

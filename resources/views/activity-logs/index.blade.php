@@ -40,6 +40,9 @@
                 <option value="CREATE_SCHEDULE" {{ request('action') === 'CREATE_SCHEDULE' ? 'selected' : '' }}>CREATE_SCHEDULE</option>
                 <option value="UPDATE_SCHEDULE" {{ request('action') === 'UPDATE_SCHEDULE' ? 'selected' : '' }}>UPDATE_SCHEDULE</option>
                 <option value="DELETE_SCHEDULE" {{ request('action') === 'DELETE_SCHEDULE' ? 'selected' : '' }}>DELETE_SCHEDULE</option>
+                <option value="UPDATE_ATTENDANCE" {{ request('action') === 'UPDATE_ATTENDANCE' ? 'selected' : '' }}>UPDATE_ATTENDANCE</option>
+                <option value="UPDATE_RATE" {{ request('action') === 'UPDATE_RATE' ? 'selected' : '' }}>UPDATE_RATE</option>
+                <option value="GENERATE_PAYROLL" {{ request('action') === 'GENERATE_PAYROLL' ? 'selected' : '' }}>GENERATE_PAYROLL</option>
                 <option value="EXPORT_EXCEL" {{ request('action') === 'EXPORT_EXCEL' ? 'selected' : '' }}>EXPORT_EXCEL</option>
                 <option value="EXPORT_PDF" {{ request('action') === 'EXPORT_PDF' ? 'selected' : '' }}>EXPORT_PDF</option>
             </select>
