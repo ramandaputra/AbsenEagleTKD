@@ -130,7 +130,7 @@
                 @else
                     <!-- Default Main Tab Header (Avatar + Title + Subtitle) -->
                     <div class="flex items-center space-x-3 w-full min-w-0">
-                        @if(request()->routeIs('schedules.index') || request()->routeIs('salary.admin.index'))
+                        @if(request()->routeIs('schedules.*') || request()->routeIs('salary.admin.*') || request()->routeIs('reports.*') || request()->routeIs('dojangs.*'))
                             <a href="{{ route('dashboard') }}"
                                onclick="if (document.referrer && new URL(document.referrer).origin === window.location.origin) { window.history.back(); return false; }"
                                aria-label="Kembali" title="Kembali"
@@ -175,34 +175,6 @@
             </div>
         </header>
 
-        <!-- Superadmin Navigation Banner -->
-        @if(auth()->user()->isSuperAdmin() && !request()->routeIs('profile.*'))
-            <div class="bg-[#EAEDFF] border-b border-[#DAE2FD] px-3 py-2 overflow-x-auto no-scrollbar flex items-center gap-2 text-xs no-print">
-                <span class="text-[#00288E] font-bold px-2 py-0.5 rounded-lg bg-white border border-[#DAE2FD] shrink-0 flex items-center gap-1">
-                    <span class="material-symbols-rounded text-sm">shield</span> MENU
-                </span>
-                <a href="{{ route('schedules.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('schedules.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                    Jadwal, Piket & Materi
-                </a>
-                <a href="{{ route('reports.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('reports.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                    Laporan & Export
-                </a>
-                <a href="{{ route('salary.admin.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('salary.admin.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                    Rekap Gaji & Tarif
-                </a>
-                <a href="{{ route('activity-logs.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('activity-logs.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                    Log Aktivitas
-                </a>
-                @if(auth()->user()->isSuperAdmin())
-                    <a href="{{ route('users.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('users.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                        Kelola Pelatih
-                    </a>
-                    <a href="{{ route('dojangs.index') }}" class="px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors {{ request()->routeIs('dojangs.*') ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#131B2E] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-                        Cabang Dojang
-                    </a>
-                @endif
-            </div>
-        @endif
         @endauth
 
         <!-- Flash Messages (Tirtafield Light Style) -->
