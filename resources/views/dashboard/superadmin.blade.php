@@ -146,20 +146,11 @@
 
             <!-- 5. Laporan & Export Presensi -->
             <a href="{{ route('reports.index') }}"
-               class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-purple-400 transition-colors">
+               class="col-span-2 min-h-[58px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-purple-400 transition-colors">
                 <span class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
                     <span class="material-symbols-rounded text-lg">bar_chart</span>
                 </span>
                 <span class="block min-w-0 text-[10.5px] font-bold text-[#131B2E] leading-tight">Laporan &amp; Export Presensi</span>
-            </a>
-
-            <!-- 6. Cabang Unit Dojang -->
-            <a href="{{ route('dojangs.index') }}"
-               class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-sky-400 transition-colors">
-                <span class="w-8 h-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-rounded text-lg">domain</span>
-                </span>
-                <span class="block min-w-0 text-[10.5px] font-bold text-[#131B2E] leading-tight">Cabang Unit Dojang</span>
             </a>
         </div>
     </section>

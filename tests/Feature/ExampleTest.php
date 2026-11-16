@@ -301,6 +301,7 @@ class ExampleTest extends TestCase
         $response->assertSee('Asisten');
         $response->assertSee('Jadwal');
         $response->assertSee('Log');
+        $response->assertDontSee('Cabang Unit Dojang');
     }
 
     public function test_superadmin_can_add_asisten_pelatih_and_update_role(): void
