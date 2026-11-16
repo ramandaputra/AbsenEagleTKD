@@ -64,10 +64,23 @@
                 <div class="min-w-0 pt-0.5">
                     <h3 class="text-sm font-bold text-[#131B2E]">Ubah PIN Presensi &amp; Keamanan</h3>
                     <p class="text-xs leading-relaxed text-[#64748B] mt-1">
-                        Masukkan PIN lama Anda terlebih dahulu untuk verifikasi keamanan sebelum menetapkan PIN baru 4 digit:
+                        Masukkan PIN lama Anda terlebih dahulu untuk verifikasi keamanan sebelum menetapkan 6 digit PIN baru:
                     </p>
                 </div>
             </div>
+
+            @if(session('success') && str_contains(session('success'), 'PIN'))
+                <div class="mt-3 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center space-x-2 text-emerald-700 text-xs font-semibold">
+                    <span class="material-symbols-rounded text-base shrink-0">check_circle</span>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+            @error('old_pin')
+                <div class="mt-3 p-2.5 rounded-xl bg-red-50 border border-red-200 flex items-center space-x-2 text-red-700 text-[11.5px] font-semibold">
+                    <span class="material-symbols-rounded text-base shrink-0">error</span>
+                    <span>{{ $message }}</span>
+                </div>
+            @enderror
 
             <form action="{{ route('profile.pin') }}" method="POST" class="mt-5 space-y-4">
                 @csrf
@@ -75,33 +88,30 @@
                 <div>
                     <label for="old_pin" class="block text-xs font-semibold text-[#131B2E] mb-1.5">PIN Lama</label>
                     <div class="relative">
-                        <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" aria-hidden="true">lock_clock</span>
+                        <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-[#0051D5]" aria-hidden="true">lock_clock</span>
                         <input id="old_pin" name="old_pin" x-bind:type="showOldPin ? 'text' : 'password'"
                                inputmode="numeric" autocomplete="off"
-                               pattern="[0-9]{4}" minlength="4" maxlength="4" required
-                               placeholder="PIN Lama (4 digit)"
-                               class="w-full h-12 pl-11 pr-12 rounded-xl border border-[#DAE2FD] bg-white text-sm font-semibold tracking-[0.2em] text-[#131B2E] placeholder:tracking-normal placeholder:font-normal placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0051D5] focus:ring-2 focus:ring-[#0051D5]/10 @error('old_pin') border-rose-400 @enderror">
+                               maxlength="6" required
+                               placeholder="PIN Lama (6 digit)"
+                               class="w-full h-11 pl-11 pr-12 rounded-xl border border-[#DAE2FD] bg-[#F8FAFC] text-sm font-semibold tracking-[0.2em] text-[#131B2E] placeholder:tracking-normal placeholder:font-normal placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0051D5] focus:bg-white transition-all @error('old_pin') border-rose-400 @enderror">
                         <button type="button" x-on:click="showOldPin = !showOldPin"
-                                x-bind:aria-label="showOldPin ? 'Sembunyikan PIN lama' : 'Tampilkan PIN lama'"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-[#64748B] hover:bg-[#F2F3FF] flex items-center justify-center">
-                            <span class="material-symbols-rounded" x-text="showOldPin ? 'visibility' : 'visibility_off'"></span>
+                                class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-[#F2F3FF] flex items-center justify-center">
+                            <span class="material-symbols-rounded" x-text="showOldPin ? 'visibility' : 'visibility_off'">visibility_off</span>
                         </button>
                     </div>
-                    @error('old_pin')<p class="text-[11px] text-rose-600 mt-1">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
-                    <label for="pin" class="block text-xs font-semibold text-[#131B2E] mb-1.5">PIN Baru (4 Digit)</label>
+                    <label for="pin" class="block text-xs font-semibold text-[#131B2E] mb-1.5">PIN Baru (6 Digit)</label>
                     <div class="relative">
-                        <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" aria-hidden="true">pin</span>
+                        <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-[#0051D5]" aria-hidden="true">pin</span>
                         <input id="pin" name="pin" x-bind:type="showNewPin ? 'text' : 'password'"
-                               inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}"
-                               minlength="4" maxlength="4" required placeholder="PIN Baru (4 digit)"
-                               class="w-full h-12 pl-11 pr-12 rounded-xl border border-[#DAE2FD] bg-white text-sm font-semibold tracking-[0.2em] text-[#131B2E] placeholder:tracking-normal placeholder:font-normal placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0051D5] focus:ring-2 focus:ring-[#0051D5]/10 @error('pin') border-rose-400 @enderror">
+                               inputmode="numeric" autocomplete="new-password"
+                               maxlength="6" required placeholder="PIN Baru (6 digit)"
+                               class="w-full h-11 pl-11 pr-12 rounded-xl border border-[#DAE2FD] bg-[#F8FAFC] text-sm font-semibold tracking-[0.2em] text-[#131B2E] placeholder:tracking-normal placeholder:font-normal placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0051D5] focus:bg-white transition-all @error('pin') border-rose-400 @enderror">
                         <button type="button" x-on:click="showNewPin = !showNewPin"
-                                x-bind:aria-label="showNewPin ? 'Sembunyikan PIN baru' : 'Tampilkan PIN baru'"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-[#64748B] hover:bg-[#F2F3FF] flex items-center justify-center">
-                            <span class="material-symbols-rounded" x-text="showNewPin ? 'visibility' : 'visibility_off'"></span>
+                                class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-[#F2F3FF] flex items-center justify-center">
+                            <span class="material-symbols-rounded" x-text="showNewPin ? 'visibility' : 'visibility_off'">visibility_off</span>
                         </button>
                     </div>
                     @error('pin')<p class="text-[11px] text-rose-600 mt-1">{{ $message }}</p>@enderror
@@ -110,15 +120,14 @@
                 <div>
                     <label for="pin_confirmation" class="block text-xs font-semibold text-[#131B2E] mb-1.5">Konfirmasi PIN Baru</label>
                     <div class="relative">
-                        <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" aria-hidden="true">verified_user</span>
+                        <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-[#0051D5]" aria-hidden="true">verified_user</span>
                         <input id="pin_confirmation" name="pin_confirmation" x-bind:type="showConfirmationPin ? 'text' : 'password'"
-                               inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}"
-                               minlength="4" maxlength="4" required placeholder="Konfirmasi PIN Baru (4 digit)"
-                               class="w-full h-12 pl-11 pr-12 rounded-xl border border-[#DAE2FD] bg-white text-sm font-semibold tracking-[0.2em] text-[#131B2E] placeholder:tracking-normal placeholder:font-normal placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0051D5] focus:ring-2 focus:ring-[#0051D5]/10 @error('pin_confirmation') border-rose-400 @enderror">
+                               inputmode="numeric" autocomplete="new-password"
+                               maxlength="6" required placeholder="Konfirmasi PIN Baru (6 digit)"
+                               class="w-full h-11 pl-11 pr-12 rounded-xl border border-[#DAE2FD] bg-[#F8FAFC] text-sm font-semibold tracking-[0.2em] text-[#131B2E] placeholder:tracking-normal placeholder:font-normal placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0051D5] focus:bg-white transition-all @error('pin_confirmation') border-rose-400 @enderror">
                         <button type="button" x-on:click="showConfirmationPin = !showConfirmationPin"
-                                x-bind:aria-label="showConfirmationPin ? 'Sembunyikan konfirmasi PIN' : 'Tampilkan konfirmasi PIN'"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-[#64748B] hover:bg-[#F2F3FF] flex items-center justify-center">
-                            <span class="material-symbols-rounded" x-text="showConfirmationPin ? 'visibility' : 'visibility_off'"></span>
+                                class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-[#F2F3FF] flex items-center justify-center">
+                            <span class="material-symbols-rounded" x-text="showConfirmationPin ? 'visibility' : 'visibility_off'">visibility_off</span>
                         </button>
                     </div>
                     @error('pin_confirmation')<p class="text-[11px] text-rose-600 mt-1">{{ $message }}</p>@enderror
@@ -129,8 +138,7 @@
                         Batal
                     </button>
                     <button type="submit" class="flex-1 h-11 rounded-xl bg-[#0051D5] text-white hover:bg-[#003ea8] font-bold text-sm flex items-center justify-center gap-2 transition-colors active:scale-[0.99]">
-                        <span class="material-symbols-rounded text-lg">save</span>
-                        <span>Simpan PIN Baru</span>
+                        Simpan PIN Baru
                     </button>
                 </div>
             </form>

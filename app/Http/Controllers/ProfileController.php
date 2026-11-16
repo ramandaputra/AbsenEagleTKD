@@ -61,29 +61,29 @@ class ProfileController extends Controller
     }
 
     /**
-     * Change user PIN.
+     * Change user PIN (6-digit, with old PIN verification + confirm).
      */
     public function updatePin(Request $request): JsonResponse|RedirectResponse
     {
         $user = $request->user();
 
         $rules = [
-            'old_pin' => ['required', 'string', 'regex:/^[0-9]{4}$/'],
-            'pin' => ['required', 'string', 'regex:/^[0-9]{4}$/'],
+            'old_pin'          => ['required', 'string', 'regex:/^[0-9]{4,6}$/'],
+            'pin'              => ['required', 'string', 'regex:/^[0-9]{6}$/'],
             'pin_confirmation' => ['required', 'string', 'same:pin'],
         ];
 
         $validated = $request->validate($rules, [
-            'old_pin.required' => 'PIN lama wajib diisi.',
-            'old_pin.regex' => 'PIN lama harus terdiri dari 4 angka.',
-            'pin.required' => 'PIN baru wajib diisi.',
-            'pin.regex' => 'PIN baru harus terdiri dari 4 angka.',
+            'old_pin.required'          => 'PIN lama wajib diisi.',
+            'old_pin.regex'             => 'PIN lama harus berupa angka.',
+            'pin.required'              => 'PIN baru wajib diisi.',
+            'pin.regex'                 => 'PIN baru harus tepat 6 digit angka.',
             'pin_confirmation.required' => 'Konfirmasi PIN baru wajib diisi.',
-            'pin_confirmation.same' => 'Konfirmasi PIN baru tidak sesuai.',
+            'pin_confirmation.same'     => 'Konfirmasi PIN baru tidak sesuai.',
         ]);
 
-        $currentPin = $user->pin ?: '1234';
-        if ($validated['old_pin'] !== (string) $currentPin) {
+        $currentPin = (string) ($user->pin ?: '1234');
+        if (trim($validated['old_pin']) !== $currentPin) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -94,9 +94,11 @@ class ProfileController extends Controller
         }
 
         $newPin = trim($validated['pin']);
-        $user->update([
-            'pin' => $newPin,
-        ]);
+        if ($newPin === $currentPin) {
+            return back()->withErrors(['pin' => 'PIN baru tidak boleh sama dengan PIN lama.']);
+        }
+
+        $user->update(['pin' => $newPin]);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

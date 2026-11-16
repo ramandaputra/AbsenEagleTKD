@@ -132,7 +132,8 @@ class ExampleTest extends TestCase
         // 2. Akun (Profile) - hanya PIN, tanpa Informasi Kepelatihan/Rekening/Kata Sandi
         $akun = $this->actingAs($user)->get('/profile');
         $akun->assertStatus(200);
-        $akun->assertSee('Ubah PIN Presensi (4 Digit)');
+        $akun->assertSee('Ubah PIN Presensi', false);
+        $akun->assertSee('Keamanan', false);
         $akun->assertSee('Keluar dari Akun');
         $akun->assertDontSee('Informasi Kepelatihan');
         $akun->assertDontSee('Rekening Transfer Honor');
@@ -141,7 +142,7 @@ class ExampleTest extends TestCase
     }
 
     /**
-     * Test asisten pelatih can update their 4-digit PIN.
+     * Test asisten pelatih can update their 6-digit PIN with old PIN verification.
      */
     public function test_asisten_pelatih_can_update_pin(): void
     {
@@ -155,18 +156,49 @@ class ExampleTest extends TestCase
             'email' => 'raja@eagletkd.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'role_id' => $role->id,
-            'pin' => '1234',
+            'pin' => '123456',
             'is_active' => true,
         ]);
 
         $response = $this->actingAs($user)->post('/profile/pin', [
-            'pin' => '5678',
+            'old_pin'          => '123456',
+            'pin'              => '567890',
+            'pin_confirmation' => '567890',
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'pin' => '5678',
+            'id'  => $user->id,
+            'pin' => '567890',
+        ]);
+    }
+
+    public function test_asisten_pelatih_cannot_update_pin_with_wrong_old_pin(): void
+    {
+        $role = \App\Models\Role::create([
+            'name' => 'asisten_pelatih',
+            'display_name' => 'Asisten Pelatih',
+        ]);
+
+        $user = \App\Models\User::create([
+            'name' => 'Raja',
+            'email' => 'raja2a@eagletkd.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'role_id' => $role->id,
+            'pin' => '123456',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($user)->post('/profile/pin', [
+            'old_pin'          => '999999',
+            'pin'              => '567890',
+            'pin_confirmation' => '567890',
+        ]);
+
+        $response->assertSessionHasErrors('old_pin');
+        $this->assertDatabaseHas('users', [
+            'id'  => $user->id,
+            'pin' => '123456', // unchanged
         ]);
     }
 

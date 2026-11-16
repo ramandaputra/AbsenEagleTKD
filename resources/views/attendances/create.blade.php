@@ -162,58 +162,16 @@
                     <div class="p-2.5 rounded-xl bg-[#F2F3FF] border border-[#DAE2FD] text-center">
                         <div class="flex items-center justify-center space-x-1 text-[10px] font-bold text-[#64748B] uppercase">
                             <span class="material-symbols-rounded text-xs">schedule</span>
-                            <span>WAKTU SERVER</span>
+                            <span>WAKTU</span>
                         </div>
                         <div class="font-bold text-xs text-[#0051D5] mt-1" x-text="serverClock">
-                            {{ $now->format('H:i:s') }} WIB
+                            {{ $now->format('H:i') }} WIB
                         </div>
                     </div>
                 </div>
 
-                <!-- Status Kehadiran (Pill Selector) -->
-                <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
-                        Status Kehadiran
-                    </label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <label class="cursor-pointer p-2 rounded-xl border text-center transition-all flex items-center justify-center space-x-1.5"
-                                :class="selectedStatus === 'Hadir' ? 'bg-[#0051D5] border-[#0051D5] text-white font-bold shadow-xs' : 'bg-[#FAF8FF] border-[#DAE2FD] text-[#131B2E] font-medium'">
-                            <input type="radio" name="status" value="Hadir" x-model="selectedStatus" class="sr-only">
-                            <span class="material-symbols-rounded text-base">check_circle</span>
-                            <span class="text-xs">Hadir</span>
-                        </label>
-
-                        <label class="cursor-pointer p-2 rounded-xl border text-center transition-all flex items-center justify-center space-x-1.5"
-                                :class="selectedStatus === 'Izin' ? 'bg-amber-600 border-amber-600 text-white font-bold shadow-xs' : 'bg-[#FAF8FF] border-[#DAE2FD] text-[#131B2E] font-medium'">
-                            <input type="radio" name="status" value="Izin" x-model="selectedStatus" class="sr-only">
-                            <span class="material-symbols-rounded text-base">pending_actions</span>
-                            <span class="text-xs">Izin</span>
-                        </label>
-
-                        <label class="cursor-pointer p-2 rounded-xl border text-center transition-all flex items-center justify-center space-x-1.5"
-                                :class="selectedStatus === 'Sakit' ? 'bg-rose-600 border-rose-600 text-white font-bold shadow-xs' : 'bg-[#FAF8FF] border-[#DAE2FD] text-[#131B2E] font-medium'">
-                            <input type="radio" name="status" value="Sakit" x-model="selectedStatus" class="sr-only">
-                            <span class="material-symbols-rounded text-base">medical_services</span>
-                            <span class="text-xs">Sakit</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Jadwal Sesi Latihan -->
-                <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
-                        Jadwal Sesi Latihan
-                    </label>
-                    <select name="training_schedule_id"
-                            class="w-full px-3 py-2.5 bg-[#FAF8FF] rounded-xl border border-[#DAE2FD] text-xs font-semibold text-[#131B2E] focus:outline-none focus:border-[#0051D5]">
-                        <option value="">-- Sesi Latihan Mandiri / Reguler --</option>
-                        @foreach($todaySchedules as $sched)
-                            <option value="{{ $sched->id }}" {{ $loop->first ? 'selected' : '' }}>
-                                {{ $sched->activity_name }} ({{ substr($sched->start_time, 0, 5) }} - {{ substr($sched->end_time, 0, 5) }} WIB)
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                <!-- Hidden status always Hadir -->
+                <input type="hidden" name="status" value="Hadir">
 
                 <!-- Catatan Kegiatan Operasional -->
                 <div>
@@ -260,7 +218,7 @@
             facingMode: 'user', // 'user' (front) or 'environment' (rear)
             selectedStatus: 'Hadir',
             videoStream: null,
-            serverClock: '{{ $now->format("H:i:s") }} WIB',
+            serverClock: '{{ $now->format("H:i") }} WIB',
 
             initCamera() {
                 this.startWebcam();
@@ -272,9 +230,8 @@
                     const now = new Date();
                     const h = String(now.getHours()).padStart(2, '0');
                     const m = String(now.getMinutes()).padStart(2, '0');
-                    const s = String(now.getSeconds()).padStart(2, '0');
-                    this.serverClock = `${h}:${m}:${s} WIB`;
-                }, 1000);
+                    this.serverClock = `${h}:${m} WIB`;
+                }, 60000);
             },
 
             async startWebcam() {
