@@ -76,22 +76,22 @@
     @else
         <section class="space-y-2.5">
             @foreach($schedules as $sched)
-                <article class="space-y-3 rounded-2xl border border-[#DAE2FD] bg-white p-3.5 shadow-xs">
+                <article class="space-y-3 rounded-2xl border border-[#DAE2FD] bg-white p-3.5 shadow-xs w-full min-w-0 overflow-hidden">
                     <div class="flex items-start justify-between gap-2.5">
-                        <div class="flex min-w-0 items-center gap-3">
+                        <div class="flex min-w-0 items-center gap-3 flex-1">
                             <div class="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-[#EAEDFF] text-[#0051D5]">
                                 <span class="text-[9px] font-bold uppercase leading-none">{{ $sched->date->translatedFormat('D') }}</span>
                                 <span class="mt-1 text-base font-extrabold leading-none">{{ $sched->date->format('d') }}</span>
                             </div>
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <h2 class="truncate text-xs font-extrabold text-[#131B2E]">{{ $sched->activity_name }}</h2>
                                 <p class="mt-1 flex items-center gap-1 text-[10px] text-[#64748B]">
-                                    <span class="material-symbols-rounded text-sm text-[#0051D5]">calendar_today</span>
-                                    {{ $sched->date->translatedFormat('d F Y') }}
+                                    <span class="material-symbols-rounded text-sm text-[#0051D5] shrink-0">calendar_today</span>
+                                    <span class="truncate">{{ $sched->date->translatedFormat('d F Y') }}</span>
                                 </p>
                                 <p class="mt-0.5 flex items-center gap-1 text-[10px] text-[#64748B]">
-                                    <span class="material-symbols-rounded text-sm text-[#0051D5]">schedule</span>
-                                    {{ substr((string) $sched->start_time, 0, 5) }}–{{ substr((string) $sched->end_time, 0, 5) }} WIB
+                                    <span class="material-symbols-rounded text-sm text-[#0051D5] shrink-0">schedule</span>
+                                    <span>{{ substr((string) $sched->start_time, 0, 5) }}–{{ substr((string) $sched->end_time, 0, 5) }} WIB</span>
                                 </p>
                             </div>
                         </div>
@@ -108,18 +108,18 @@
                         @endif
                     </div>
 
-                    <div class="flex items-start gap-1.5 rounded-xl bg-[#F8FAFC] px-2.5 py-2 text-[10px] text-[#64748B]">
-                        <span class="material-symbols-rounded text-sm text-[#0051D5]">location_on</span>
-                        <span class="min-w-0 leading-snug">{{ $sched->location }}</span>
+                    <div class="flex items-start gap-2 rounded-xl bg-[#F8FAFC] px-2.5 py-2 text-[10px] text-[#64748B] w-full min-w-0 overflow-hidden">
+                        <span class="material-symbols-rounded text-sm text-[#0051D5] shrink-0 mt-0.5">location_on</span>
+                        <span class="min-w-0 break-words leading-snug flex-1">{{ $sched->location }}</span>
                     </div>
 
                     @if($sched->description)
-                        <p class="rounded-xl border border-[#DAE2FD]/70 bg-[#F8FAFC] px-2.5 py-2 text-[10.5px] leading-snug text-[#475569]">
+                        <p class="rounded-xl border border-[#DAE2FD]/70 bg-[#F8FAFC] px-2.5 py-2 text-[10.5px] leading-snug text-[#475569] break-words w-full min-w-0 overflow-hidden">
                             {{ $sched->description }}
                         </p>
                     @endif
 
-                    <div class="space-y-2 rounded-xl border border-[#DAE2FD]/70 bg-[#F8FAFC] p-2.5">
+                    <div class="space-y-2 rounded-xl border border-[#DAE2FD]/70 bg-[#F8FAFC] p-2.5 w-full min-w-0 overflow-hidden">
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-1.5 text-[10px] font-bold text-[#131B2E]">
                                 <span class="material-symbols-rounded text-base text-[#0051D5]">groups</span>

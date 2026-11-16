@@ -109,14 +109,14 @@
     </div>
 
     {{-- 3. DESKRIPSI MATERI LATIHAN HARI INI (Tepat Di Bawah Tombol Presensi) --}}
-    <div class="bg-white rounded-2xl border border-[#DAE2FD] p-4 shadow-xs space-y-3">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-[#131B2E] flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-[#00288E] text-lg">menu_book</span>
-                <span>Materi Latihan Hari Ini</span>
+    <section class="bg-white rounded-2xl sm:rounded-3xl border border-[#DAE2FD] p-4 sm:p-5 shadow-xs space-y-3.5 w-full min-w-0 overflow-hidden">
+        <div class="flex items-center justify-between gap-2">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-[#131B2E] flex items-center gap-1.5 min-w-0">
+                <span class="material-symbols-rounded text-[#00288E] text-lg shrink-0">menu_book</span>
+                <span class="truncate">Materi Latihan Hari Ini</span>
             </h2>
             @if($todaySchedule)
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EAEDFF] text-[#00288E]">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EAEDFF] text-[#00288E] shrink-0">
                     {{ $todaySchedule->date->isToday() ? 'Sesi Hari Ini' : 'Sesi Terdekat' }}
                 </span>
             @endif
@@ -124,32 +124,32 @@
 
         @if($todaySchedule)
             <!-- Sesi & Lokasi Card -->
-            <div class="p-3 rounded-xl bg-[#FAF8FF] border border-[#DAE2FD]">
+            <div class="p-3.5 rounded-xl bg-[#FAF8FF] border border-[#DAE2FD] space-y-2 w-full min-w-0 overflow-hidden">
                 <div class="flex items-center justify-between gap-2">
-                    <h3 class="text-sm font-bold text-[#131B2E] truncate">
+                    <h3 class="text-sm font-bold text-[#131B2E] break-words">
                         {{ $todaySchedule->activity_name }}
                     </h3>
                 </div>
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#64748B] mt-1">
-                    <span class="flex items-center gap-1 font-medium">
-                        <span class="material-symbols-rounded text-xs text-[#0051D5]">schedule</span>
+                <div class="space-y-1.5 text-xs text-[#64748B] pt-0.5">
+                    <div class="flex items-center gap-2 font-medium">
+                        <span class="material-symbols-rounded text-sm text-[#0051D5] shrink-0">schedule</span>
                         <span>{{ substr($todaySchedule->start_time, 0, 5) }} - {{ substr($todaySchedule->end_time, 0, 5) }} WIB</span>
-                    </span>
-                    <span class="flex items-center gap-1 font-medium">
-                        <span class="material-symbols-rounded text-xs text-[#0051D5]">location_on</span>
-                        <span class="truncate">{{ $todaySchedule->location }}</span>
-                    </span>
+                    </div>
+                    <div class="flex items-start gap-2 font-medium min-w-0">
+                        <span class="material-symbols-rounded text-sm text-[#0051D5] shrink-0 mt-0.5">location_on</span>
+                        <span class="break-words leading-relaxed text-[#475569] flex-1 min-w-0">{{ $todaySchedule->location }}</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Deskripsi / Kurikulum Latihan -->
-            <div>
+            <div class="w-full min-w-0">
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
                     Rincian &amp; Fokus Materi Latihan
                 </label>
-                <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#DAE2FD] text-xs text-[#131B2E] leading-relaxed">
+                <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#DAE2FD] text-xs text-[#131B2E] leading-relaxed break-words w-full min-w-0 overflow-hidden">
                     @if($todaySchedule->description)
-                        <p class="whitespace-pre-line">{{ $todaySchedule->description }}</p>
+                        <p class="whitespace-pre-line break-words">{{ $todaySchedule->description }}</p>
                     @else
                         <p class="text-[#64748B] italic">Materi latihan reguler: Poomsae dasar, drill tendangan (Kyorugi), fisik dan peregangan taekwondo.</p>
                     @endif
@@ -158,18 +158,18 @@
 
             <!-- Tugas Khusus Anda (Jika Ada Penugasan Piket) -->
             @if($todayDuty)
-                <div class="p-3 rounded-xl bg-[#0051D5]/5 border border-[#0051D5]/20 space-y-1.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#0051D5] flex items-center gap-1">
-                            <span class="material-symbols-rounded text-sm">assignment_ind</span>
-                            <span>Tugas Khusus Mengajar Anda</span>
+                <div class="p-3.5 rounded-xl bg-[#0051D5]/5 border border-[#0051D5]/20 space-y-1.5 w-full min-w-0 overflow-hidden">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#0051D5] flex items-center gap-1 min-w-0">
+                            <span class="material-symbols-rounded text-sm shrink-0">assignment_ind</span>
+                            <span class="truncate">Tugas Khusus Mengajar Anda</span>
                         </span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0051D5] text-white">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0051D5] text-white shrink-0">
                             {{ $todayDuty->role_task }}
                         </span>
                     </div>
                     @if($todayDuty->training_materials)
-                        <p class="text-xs text-[#131B2E] font-medium pt-0.5">
+                        <p class="text-xs text-[#131B2E] font-medium pt-0.5 break-words">
                             <span class="font-bold text-[#00288E]">Target Materi:</span> {{ $todayDuty->training_materials }}
                         </p>
                     @endif
@@ -178,17 +178,23 @@
 
             <!-- Instruktur & Asisten Bertugas -->
             @if($todaySchedule->dutySchedule && $todaySchedule->dutySchedule->assignments->isNotEmpty())
-                <div class="pt-1">
-                    <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1.5">
+                <div class="pt-1 w-full min-w-0">
+                    <label class="block text-[10.5px] font-semibold text-[#64748B] mb-2">
                         Pelatih &amp; Asisten Yang Bertugas:
                     </label>
-                    <div class="flex flex-wrap gap-1.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full min-w-0">
                         @foreach($todaySchedule->dutySchedule->assignments as $asg)
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-semibold {{ $asg->user_id === $user->id ? 'bg-[#00288E] text-white shadow-xs' : 'bg-[#FAF8FF] border border-[#DAE2FD] text-[#131B2E]' }}">
-                                <span class="material-symbols-rounded text-xs">{{ $asg->user_id === $user->id ? 'person' : 'sports_martial_arts' }}</span>
-                                <span>{{ $asg->user?->name ?? 'Pelatih' }}</span>
-                                <span class="opacity-80 text-[9.5px]">({{ $asg->role_task }})</span>
-                            </span>
+                            <div class="flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold {{ $asg->user_id === $user->id ? 'bg-[#00288E] text-white shadow-xs' : 'bg-[#FAF8FF] border border-[#DAE2FD] text-[#131B2E]' }} min-w-0 w-full overflow-hidden">
+                                <div class="w-8 h-8 rounded-lg {{ $asg->user_id === $user->id ? 'bg-white/20 text-white' : 'bg-[#EAEDFF] text-[#0051D5]' }} flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-rounded text-base">{{ $asg->user_id === $user->id ? 'person' : 'sports_martial_arts' }}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate leading-tight font-bold">{{ $asg->user?->name ?? 'Pelatih' }}</p>
+                                    <p class="text-[10px] {{ $asg->user_id === $user->id ? 'text-white/80' : 'text-[#64748B]' }} truncate leading-tight mt-0.5">
+                                        {{ $asg->role_task }}
+                                    </p>
+                                </div>
+                            </div>
                         @endforeach
                     </div>
                 </div>
