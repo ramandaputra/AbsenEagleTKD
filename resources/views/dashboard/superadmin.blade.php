@@ -263,59 +263,80 @@
 
         <!-- 2. Tab Asisten Pelatih -->
         <div x-show="activePanel === 'coaches'" x-cloak class="space-y-2.5">
+            <div class="flex items-center justify-between px-0.5">
+                <div>
+                    <h2 class="text-[13.5px] font-bold text-[#131B2E] tracking-tight">Rekap Asisten Pelatih</h2>
+                    <p class="text-[10.5px] text-[#64748B] mt-0.5">Periode {{ $now->translatedFormat('F Y') }}</p>
+                </div>
+            </div>
+
             @forelse($coaches as $coach)
-                <div class="bg-white rounded-2xl border border-[#DAE2FD] p-3 shadow-xs flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-10 h-10 rounded-full bg-[#EAEDFF] text-[#0051D5] flex items-center justify-center shrink-0">
-                            <span class="material-symbols-rounded text-xl">sports_martial_arts</span>
-                        </div>
+                @php $summary = $coach->monthly_summary; @endphp
+                <article class="bg-white rounded-2xl border border-[#DAE2FD] p-3.5 shadow-xs">
+                    <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <h4 class="text-xs font-bold text-[#131B2E] truncate">{{ $coach->name }}</h4>
-                            <p class="text-[10.5px] text-[#64748B] truncate mt-0.5">
-                                {{ $coach->belt_level ?: 'Pelatih' }} &bull; {{ $coach->dojang?->name ?? 'Dojang Pusat' }}
+                            <div class="flex items-center gap-2 min-w-0">
+                                <h3 class="text-xs font-bold text-[#131B2E] truncate">{{ $coach->name }}</h3>
+                                <span class="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-[#EAEDFF] text-[#0051D5] font-semibold">
+                                    {{ $coach->belt_level ?: 'Asisten Pelatih' }}
+                                </span>
+                            </div>
+                            <p class="text-[10.5px] text-[#64748B] mt-1">
+                                Hadir bulan ini <strong class="text-emerald-700">{{ $coach->monthly_hadir_count }}</strong>
                             </p>
                         </div>
+                        <div class="text-right shrink-0">
+                            <div class="text-[13px] font-extrabold text-emerald-700">
+                                Rp {{ number_format($summary['base_salary'], 0, ',', '.') }}
+                            </div>
+                            <div class="text-[9.5px] text-[#64748B]">Estimasi honor</div>
+                        </div>
                     </div>
-                    <div class="text-right shrink-0">
-                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {{ $coach->monthly_hadir_count }} Kehadiran
-                        </span>
-                        <p class="text-[10px] font-mono text-[#0051D5] font-semibold mt-0.5">
-                            Rp {{ number_format($coach->rate_per_session, 0, ',', '.') }}/sesi
-                        </p>
-                    </div>
-                </div>
+                </article>
             @empty
-                <div class="bg-white rounded-2xl border border-[#DAE2FD] p-6 text-center text-[#64748B]">
-                    <span class="material-symbols-rounded text-3xl text-slate-300">groups</span>
-                    <p class="text-xs font-semibold text-[#131B2E] mt-1">Belum Ada Asisten Terdaftar</p>
+                <div class="py-8 text-center bg-white rounded-2xl border border-[#DAE2FD] px-5 shadow-xs">
+                    <span class="material-symbols-rounded text-4xl text-slate-300">groups</span>
+                    <h3 class="text-xs font-bold text-slate-800 mt-2">Belum Ada Asisten Pelatih</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Asisten pelatih aktif akan tercatat di sini.</p>
                 </div>
             @endforelse
         </div>
 
         <!-- 3. Tab Jadwal -->
         <div x-show="activePanel === 'schedules'" x-cloak class="space-y-2.5">
-            @forelse($upcomingSchedules as $sched)
-                <div class="bg-white rounded-2xl border border-[#DAE2FD] p-3 shadow-xs space-y-1.5">
-                    <div class="flex items-center justify-between gap-2">
-                        <h4 class="text-xs font-bold text-[#131B2E] truncate">{{ $sched->activity_name }}</h4>
-                        <span class="text-[10px] font-semibold text-[#0051D5] px-2 py-0.5 rounded-full bg-[#EAEDFF]">
-                            {{ $sched->date->translatedFormat('d M Y') }}
-                        </span>
+            <div class="px-0.5">
+                <h2 class="text-[13.5px] font-bold text-[#131B2E] tracking-tight">Jadwal Latihan Mendatang</h2>
+                <p class="text-[10.5px] text-[#64748B] mt-0.5">Sesi latihan terdekat dan jumlah asisten bertugas.</p>
+            </div>
+
+            @forelse($upcomingSchedules as $schedule)
+                @php
+                    $assignmentCount = $schedule->dutySchedule?->assignments?->count() ?? 0;
+                @endphp
+                <article class="bg-white rounded-2xl border border-[#DAE2FD] p-3.5 shadow-xs flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-[#EAEDFF] text-[#0051D5] flex flex-col items-center justify-center shrink-0">
+                        <span class="material-symbols-rounded text-xl">calendar_month</span>
                     </div>
-                    <p class="text-[10.5px] text-[#64748B] flex items-center gap-1">
-                        <span class="material-symbols-rounded text-xs text-[#0051D5]">schedule</span>
-                        {{ substr($sched->start_time, 0, 5) }} - {{ substr($sched->end_time, 0, 5) }} WIB
-                    </p>
-                    <p class="text-[10.5px] text-[#475569] flex items-center gap-1 truncate">
-                        <span class="material-symbols-rounded text-xs text-[#0051D5]">location_on</span>
-                        {{ $sched->location }}
-                    </p>
-                </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-xs font-bold text-[#131B2E] truncate">{{ $schedule->activity_name }}</h3>
+                        <p class="text-[10.5px] text-[#64748B] mt-0.5 truncate">
+                            {{ $schedule->date->translatedFormat('D, d M') }} &bull; {{ substr((string) $schedule->start_time, 0, 5) }} WIB
+                        </p>
+                        <p class="text-[10px] text-[#0051D5] mt-1 font-semibold truncate">
+                            {{ $assignmentCount }} asisten ditugaskan
+                        </p>
+                    </div>
+                    <a href="{{ route('schedules.index', ['month' => $schedule->date->month, 'year' => $schedule->date->year]) }}"
+                       aria-label="Lihat detail jadwal {{ $schedule->activity_name }}"
+                       class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#64748B] transition-colors hover:bg-[#EAEDFF] hover:text-[#0051D5]">
+                        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    </a>
+                </article>
             @empty
-                <div class="bg-white rounded-2xl border border-[#DAE2FD] p-6 text-center text-[#64748B]">
-                    <span class="material-symbols-rounded text-3xl text-slate-300">event_upcoming</span>
-                    <p class="text-xs font-semibold text-[#131B2E] mt-1">Belum Ada Jadwal Mendatang</p>
+                <div class="py-8 text-center bg-white rounded-2xl border border-[#DAE2FD] px-5 shadow-xs">
+                    <span class="material-symbols-rounded text-4xl text-slate-300">event_available</span>
+                    <h3 class="text-xs font-bold text-slate-800 mt-2">Belum Ada Jadwal</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Jadwal latihan berikutnya akan muncul di sini.</p>
                 </div>
             @endforelse
         </div>
