@@ -39,13 +39,6 @@
             margin: 0;
             text-transform: uppercase;
         }
-        .kop-subtitle {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 9.5pt;
-            font-weight: bold;
-            color: #1e293b;
-            margin: 3px 0 0 0;
-        }
         .kop-address {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 8pt;
@@ -122,7 +115,7 @@
             text-transform: uppercase;
             padding: 6px 6px;
             border: 1px solid #CBD5E1;
-            text-align: left;
+            text-align: center;
         }
         .data-table td {
             font-family: Arial, Helvetica, sans-serif;
@@ -134,6 +127,7 @@
         .data-table tr:nth-child(even) {
             background: #FAFAFA;
         }
+        .text-left { text-align: left; }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .font-bold { font-weight: bold; }
@@ -190,16 +184,17 @@
             font-size: 10pt;
             font-weight: bold;
             color: #0f172a;
-            border-bottom: 1px solid #0f172a;
+            border-bottom: 1.5px solid #0f172a;
             display: inline-block;
             padding-bottom: 2px;
             margin-top: 4px;
         }
-        .sig-role {
+        .sig-rank {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 8.5pt;
-            color: #64748b;
-            margin-top: 2px;
+            font-size: 9pt;
+            font-weight: bold;
+            color: #1e293b;
+            margin: 3px 0 0 0;
         }
     </style>
 </head>
@@ -257,12 +252,11 @@
         }
     @endphp
 
-    <!-- Kop Surat Resmi (Bersih Tanpa Print Time / Admin Header) -->
+    <!-- Kop Surat Resmi -->
     <table class="kop-table">
         <tr>
             <td style="width: 100%;">
                 <h1 class="kop-title">EAGLE TAEKWONDO CLUB</h1>
-                <p class="kop-subtitle">Pusat Pelatihan Beladiri Taekwondo Indonesia &bull; Dojang Resmi</p>
                 <p class="kop-address">Jl. Mt Haryono Km.4 Kel. Tanjung Unggat Kec. Bukit Bestari Kota Tanjungpinang Provinsi Kepulauan Riau</p>
             </td>
         </tr>
@@ -297,12 +291,12 @@
         <thead>
             <tr>
                 <th style="width: 24px;" class="text-center">No</th>
-                <th style="width: 110px;">Nama Asisten Pelatih</th>
-                <th style="width: 65px;">Sabuk</th>
-                <th style="width: 65px;" class="text-right">Tarif/Sesi</th>
+                <th style="width: 110px;" class="text-center">Nama Asisten Pelatih</th>
+                <th style="width: 65px;" class="text-center">Sabuk</th>
+                <th style="width: 65px;" class="text-center">Tarif/Sesi</th>
                 <th style="width: 55px;" class="text-center">Sesi Hadir</th>
-                <th style="width: 80px;" class="text-right">Total Honor</th>
-                <th>Tanggal Hadir dalam Periode</th>
+                <th style="width: 80px;" class="text-center">Total Honor</th>
+                <th class="text-center">Tanggal Hadir dalam Periode</th>
             </tr>
         </thead>
         <tbody>
@@ -310,7 +304,7 @@
                 <tr>
                     <td class="text-center">{{ $idx + 1 }}</td>
                     <td class="font-bold">{{ $c['coach']->name }}</td>
-                    <td>{{ $c['coach']->belt_level ?: 'Pelatih' }}</td>
+                    <td class="text-center">{{ $c['coach']->belt_level ?: 'Pelatih' }}</td>
                     <td class="text-right font-bold">Rp {{ number_format($c['coach']->rate_per_session, 0, ',', '.') }}</td>
                     <td class="text-center status-hadir font-bold">{{ $c['hadir_count'] }}</td>
                     <td class="text-right status-hadir font-bold">Rp {{ number_format($c['total_salary'], 0, ',', '.') }}</td>
@@ -332,10 +326,10 @@
 
             <!-- Total Row -->
             <tr class="total-row">
-                <td colspan="4" class="text-right font-bold">TOTAL KESELURUHAN:</td>
+                <td colspan="4" class="text-left font-bold" style="text-align: left;">TOTAL KESELURUHAN:</td>
                 <td class="text-center font-bold">{{ $total_hadir }} Sesi</td>
                 <td class="text-right font-bold">Rp {{ number_format($total_salary_overall, 0, ',', '.') }}</td>
-                <td class="font-bold">{{ $active_coaches_count }} Asisten Pelatih Aktif</td>
+                <td class="font-bold text-center">{{ $active_coaches_count }} Asisten Pelatih Aktif</td>
             </tr>
         </tbody>
     </table>
@@ -349,7 +343,7 @@
         <tr>
             <td style="width: 55%;"></td>
             <td style="width: 45%; text-align: center;">
-                <p style="margin: 0; font-size: 9.5pt; color: #475569;">Tanjungpinang, {{ \Carbon\Carbon::parse($end_date)->translatedFormat('d F Y') }}</p>
+                <p style="margin: 0; font-size: 9.5pt; color: #475569;">Tanjungpinang, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
                 <p style="margin: 2px 0 0 0; font-size: 10pt; font-weight: bold; color: #0f172a;">Mengetahui &amp; Menyetujui,</p>
                 <p style="margin: 1px 0 6px 0; font-size: 9pt; font-weight: bold; color: #00288E;">Pelatih Utama Eagle Taekwondo Club</p>
 
@@ -371,9 +365,9 @@
                     <div style="font-size: 7.5pt; color: #00288E; font-weight: bold; margin-top: 3px; letter-spacing: 0.5px;">E-SIGNATURE VERIFIED</div>
                 </div>
 
-                <div style="margin-top: 4px;">
-                    <span class="sig-name">Sabeum Lukman (DAN II Kukkiwon)</span>
-                    <p class="sig-role">Pelatih Kepala &bull; ID: ETKD-PLT-001</p>
+                <div style="margin-top: 6px;">
+                    <span class="sig-name">Sabeum Lukman</span>
+                    <p class="sig-rank">DAN II Kukkiwon</p>
                 </div>
             </td>
         </tr>
