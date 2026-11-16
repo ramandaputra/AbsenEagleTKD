@@ -19,8 +19,8 @@
 
 <div x-data="{ showModal: false }" class="space-y-4 pb-20">
 
-    <!-- 1. VERIFIED SUCCESS STATE ANIMATION EMBLEM (Matching Tirtafield BuktiPresensiBerhasilScreen) -->
-    <section class="flex flex-col items-center pt-2 pb-1 text-center">
+    <!-- 1. VERIFIED SUCCESS STATE CARD -->
+    <section class="w-full bg-white rounded-2xl sm:rounded-3xl border border-[#DAE2FD] shadow-[0_8px_30px_rgba(15,23,42,0.04)] p-6 flex flex-col items-center text-center overflow-hidden">
         <!-- Pulsing Circle Emblem -->
         <div class="relative w-20 h-20 flex items-center justify-center">
             <!-- Pulsing outer halo -->
@@ -35,7 +35,7 @@
         <h2 class="mt-3.5 text-xl font-bold text-[#131B2E] tracking-tight font-sans">
             Presensi Berhasil Terkirim!
         </h2>
-        <p class="mt-1.5 text-[13px] text-[#64748B] px-4 max-w-[340px] leading-relaxed font-sans">
+        <p class="mt-1.5 text-[13px] text-[#64748B] px-2 max-w-[340px] leading-relaxed font-sans">
             Data kehadiran Anda telah tercatat dan terverifikasi di sistem Eagle TKD.
         </p>
     </section>
