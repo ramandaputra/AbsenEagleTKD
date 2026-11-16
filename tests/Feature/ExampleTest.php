@@ -397,7 +397,14 @@ class ExampleTest extends TestCase
         $response->assertSee('Gantt Chart');
         $response->assertSee('Total Sesi Hadir');
         $response->assertSee('Akumulasi Honor');
+        $response->assertSee('Cetak PDF');
+        $response->assertDontSee('Excel');
         $response->assertDontSee('Total Sakit');
         $response->assertDontSee('Total Izin');
+
+        // Test downloading the optimized PDF report
+        $pdfResponse = $this->actingAs($userSuper)->get('/reports/export/pdf');
+        $pdfResponse->assertStatus(200);
+        $this->assertEquals('application/pdf', $pdfResponse->headers->get('content-type'));
     }
 }

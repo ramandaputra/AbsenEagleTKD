@@ -20,15 +20,10 @@
             </div>
 
             <div class="flex items-center gap-1.5 shrink-0">
-                <a href="{{ route('reports.export.excel', request()->all()) }}"
-                   class="inline-flex h-8 items-center gap-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 px-2.5 text-[10px] font-bold text-white shadow-sm transition-colors">
-                    <span class="material-symbols-rounded text-sm">table_chart</span>
-                    <span>Excel</span>
-                </a>
                 <a href="{{ route('reports.export.pdf', request()->all()) }}"
-                   class="inline-flex h-8 items-center gap-1 rounded-xl bg-rose-500 hover:bg-rose-600 px-2.5 text-[10px] font-bold text-white shadow-sm transition-colors">
-                    <span class="material-symbols-rounded text-sm">picture_as_pdf</span>
-                    <span>PDF</span>
+                   class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 px-3.5 text-xs font-bold text-white shadow-md transition-colors">
+                    <span class="material-symbols-rounded text-base">picture_as_pdf</span>
+                    <span>Cetak PDF</span>
                 </a>
             </div>
         </div>
