@@ -46,17 +46,6 @@
         <div class="h-1 w-full bg-gradient-to-r from-[#0051D5] to-[#4EDEA3]"></div>
 
         <div class="p-4 sm:p-5 space-y-4">
-            <!-- Receipt Header Pill Badge -->
-            <div class="flex justify-center">
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EAEDFF] border border-[#DAE2FD]/80 text-[#131B2E]">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0051D5] opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#0051D5]"></span>
-                    </span>
-                    <span class="text-[11.5px] font-semibold">Tercatat: Presensi Sah &amp; Terverifikasi</span>
-                </div>
-            </div>
-
             <!-- Shift & Status Category Box -->
             <div class="p-3 rounded-xl bg-[#F2F3FF] border border-[#EAEDFF] flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">

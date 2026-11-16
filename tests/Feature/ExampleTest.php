@@ -271,6 +271,7 @@ class ExampleTest extends TestCase
         $response->assertSee('Raja16112026.jpg');
         $response->assertDontSee('BERSTEMPEL LOKASI');
         $response->assertDontSee('Foto Presensi Sah & Terverifikasi');
+        $response->assertDontSee('Tercatat: Presensi Sah');
         $response->assertSee('Kembali ke Beranda');
     }
 }
