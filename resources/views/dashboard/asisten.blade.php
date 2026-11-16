@@ -158,42 +158,62 @@
 
             <!-- Tugas Khusus Anda (Jika Ada Penugasan Piket) -->
             @if($todayDuty)
-                <div class="p-3.5 rounded-xl bg-[#0051D5]/5 border border-[#0051D5]/20 space-y-1.5 w-full min-w-0 overflow-hidden">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#0051D5] flex items-center gap-1 min-w-0">
-                            <span class="material-symbols-rounded text-sm shrink-0">assignment_ind</span>
-                            <span class="truncate">Tugas Khusus Mengajar Anda</span>
-                        </span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0051D5] text-white shrink-0">
-                            {{ $todayDuty->role_task }}
-                        </span>
+                <div class="rounded-xl border border-[#0051D5]/20 bg-gradient-to-r from-[#0051D5]/5 to-[#316BF3]/5 p-3 flex items-center justify-between gap-2.5 w-full min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 rounded-lg bg-[#0051D5]/10 text-[#0051D5] flex items-center justify-center shrink-0">
+                            <span class="material-symbols-rounded text-lg">assignment_ind</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-[#0051D5]">Tugas Khusus Mengajar Anda</p>
+                            <p class="text-xs font-bold text-[#131B2E] truncate mt-0.5">{{ $todayDuty->role_task }}</p>
+                            @if($todayDuty->training_materials)
+                                <p class="text-[10.5px] text-[#64748B] truncate mt-0.5">
+                                    <span class="font-semibold text-[#00288E]">Target:</span> {{ $todayDuty->training_materials }}
+                                </p>
+                            @endif
+                        </div>
                     </div>
-                    @if($todayDuty->training_materials)
-                        <p class="text-xs text-[#131B2E] font-medium pt-0.5 break-words">
-                            <span class="font-bold text-[#00288E]">Target Materi:</span> {{ $todayDuty->training_materials }}
-                        </p>
-                    @endif
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0051D5] text-white shrink-0">
+                        Aktif
+                    </span>
                 </div>
             @endif
 
             <!-- Instruktur & Asisten Bertugas -->
             @if($todaySchedule->dutySchedule && $todaySchedule->dutySchedule->assignments->isNotEmpty())
-                <div class="pt-1 w-full min-w-0">
-                    <label class="block text-[10.5px] font-semibold text-[#64748B] mb-2">
-                        Pelatih &amp; Asisten Yang Bertugas:
-                    </label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full min-w-0">
+                <div class="pt-1 w-full min-w-0 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1.5">
+                            <span class="material-symbols-rounded text-sm text-[#0051D5]">groups</span>
+                            <span>Pelatih &amp; Asisten Yang Bertugas</span>
+                        </label>
+                        <span class="text-[10px] font-semibold text-[#64748B]">
+                            {{ $todaySchedule->dutySchedule->assignments->count() }} pelatih
+                        </span>
+                    </div>
+
+                    <div class="rounded-xl border border-[#DAE2FD] bg-white divide-y divide-[#DAE2FD]/60 overflow-hidden shadow-xs w-full min-w-0">
                         @foreach($todaySchedule->dutySchedule->assignments as $asg)
-                            <div class="flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold {{ $asg->user_id === $user->id ? 'bg-[#00288E] text-white shadow-xs' : 'bg-[#FAF8FF] border border-[#DAE2FD] text-[#131B2E]' }} min-w-0 w-full overflow-hidden">
-                                <div class="w-8 h-8 rounded-lg {{ $asg->user_id === $user->id ? 'bg-white/20 text-white' : 'bg-[#EAEDFF] text-[#0051D5]' }} flex items-center justify-center shrink-0">
-                                    <span class="material-symbols-rounded text-base">{{ $asg->user_id === $user->id ? 'person' : 'sports_martial_arts' }}</span>
+                            <div class="px-3 py-2.5 flex items-center justify-between gap-3 {{ $asg->user_id === $user->id ? 'bg-[#FAF8FF]' : 'bg-white' }} w-full min-w-0">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="w-8 h-8 rounded-full {{ $asg->user_id === $user->id ? 'bg-[#00288E] text-white ring-2 ring-[#00288E]/20' : 'bg-[#EAEDFF] text-[#0051D5]' }} flex items-center justify-center shrink-0">
+                                        <span class="material-symbols-rounded text-lg">sports_martial_arts</span>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            <span class="font-bold text-xs text-[#131B2E] truncate">{{ $asg->user?->name ?? 'Pelatih' }}</span>
+                                            @if($asg->user_id === $user->id)
+                                                <span class="px-1.5 py-0.2 rounded-full bg-[#0051D5] text-white text-[9px] font-bold shrink-0">Anda</span>
+                                            @endif
+                                        </div>
+                                        @if($asg->training_materials)
+                                            <p class="text-[10px] text-[#64748B] truncate mt-0.5">Materi: {{ $asg->training_materials }}</p>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate leading-tight font-bold">{{ $asg->user?->name ?? 'Pelatih' }}</p>
-                                    <p class="text-[10px] {{ $asg->user_id === $user->id ? 'text-white/80' : 'text-[#64748B]' }} truncate leading-tight mt-0.5">
-                                        {{ $asg->role_task }}
-                                    </p>
-                                </div>
+                                <span class="px-2.5 py-1 rounded-full {{ $asg->user_id === $user->id ? 'bg-[#EAEDFF] text-[#00288E] font-bold' : 'bg-[#F2F3FF] text-[#475569] font-medium' }} border border-[#DAE2FD] text-[10.5px] shrink-0 text-right">
+                                    {{ $asg->role_task }}
+                                </span>
                             </div>
                         @endforeach
                     </div>
