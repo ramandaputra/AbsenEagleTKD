@@ -164,23 +164,6 @@
                         class="w-full pl-11 pr-4 py-3 bg-white border border-[#DAE2FD] rounded-2xl shadow-sm text-sm font-semibold text-[#131B2E] placeholder-[#94A3B8] focus:outline-none focus:border-[#00288E] focus:ring-2 focus:ring-[#00288E]/10 transition-all"
                     >
                 </div>
-                <!-- Autocomplete suggestions -->
-                <div x-show="suggestions.length > 0 && showSuggestions" @click.away="showSuggestions = false" x-cloak
-                     class="absolute top-full left-0 right-0 mt-1 bg-white border border-[#DAE2FD] rounded-2xl shadow-xl z-50 overflow-hidden">
-                    <template x-for="u in suggestions" :key="u.id">
-                        <button type="button" @click="selectSuggestion(u)"
-                                class="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-[#F2F3FF] transition-colors border-b border-[#F1F5F9] last:border-0">
-                            <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs text-white shrink-0"
-                                 :class="u.role.includes('superadmin') ? 'bg-amber-600' : (u.role.includes('admin') ? 'bg-red-600' : 'bg-blue-600')"
-                                 x-text="u.name.charAt(0)">
-                            </div>
-                            <div>
-                                <p class="text-xs font-bold text-[#131B2E]" x-text="u.name"></p>
-                                <p class="text-[10px] text-[#64748B]" x-text="u.role_display"></p>
-                            </div>
-                        </button>
-                    </template>
-                </div>
             </div>
 
             <!-- PIN Keamanan Header & 4 Animated Dots -->
@@ -259,26 +242,11 @@
 
     </div>
 
-@php
-    $usersData = $demoUsers->map(function($u) {
-        return [
-            'id'           => $u->id,
-            'name'         => $u->name,
-            'role'         => $u->role_name ?? '',
-            'role_display' => $u->role_display_name ?? 'Pelatih',
-            'belt_level'   => $u->belt_level ?? 'Dan Kukkiwon',
-        ];
-    })->values();
-@endphp
-
     <!-- Alpine.js Application Logic -->
     <script>
         function flutterLoginApp() {
             return {
-                users: {!! json_encode($usersData) !!},
                 nameInput: '',
-                suggestions: [],
-                showSuggestions: false,
                 pin: '',
                 isLoading: false,
                 errorMessage: null,
@@ -300,22 +268,6 @@
                 onNameInput() {
                     this.errorMessage = null;
                     this.pin = '';
-                    const q = this.nameInput.trim().toLowerCase();
-                    if (q.length === 0) {
-                        this.suggestions = [];
-                        this.showSuggestions = false;
-                        return;
-                    }
-                    this.suggestions = this.users.filter(u => u.name.toLowerCase().startsWith(q)).slice(0, 5);
-                    this.showSuggestions = this.suggestions.length > 0;
-                },
-
-                selectSuggestion(u) {
-                    this.nameInput = u.name;
-                    this.suggestions = [];
-                    this.showSuggestions = false;
-                    this.pin = '';
-                    this.errorMessage = null;
                 },
 
                 pressDigit(d) {
