@@ -153,6 +153,11 @@ class DashboardController extends Controller
         }
 
         // 3. Superadmin Dashboard
+        $todayAttendances = Attendance::with(['user', 'photos', 'trainingSchedule'])
+            ->where('date', $todayDate)
+            ->latest()
+            ->get();
+
         $totalDojangs = Dojang::where('is_active', true)->count();
         $totalCoaches = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))->where('is_active', true)->count();
         $totalHeadCoaches = User::whereHas('role', fn ($q) => $q->where('name', 'admin'))->where('is_active', true)->count();
@@ -160,6 +165,17 @@ class DashboardController extends Controller
         $allCoaches = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))
             ->where('is_active', true)
             ->get();
+
+        $monthlyAttendanceCounts = Attendance::query()
+            ->selectRaw('user_id, COUNT(*) as total_hadir')
+            ->where('status', 'Hadir')
+            ->whereBetween('date', [
+                $now->copy()->startOfMonth()->toDateString(),
+                $now->copy()->endOfMonth()->toDateString(),
+            ])
+            ->whereIn('user_id', $allCoaches->modelKeys())
+            ->groupBy('user_id')
+            ->pluck('total_hadir', 'user_id');
 
         $totalHadirThisMonth = 0;
         $totalEstimatedSalaryThisMonth = 0;
@@ -169,7 +185,11 @@ class DashboardController extends Controller
             $totalHadirThisMonth += $summary['total_approved_sessions'];
             $totalEstimatedSalaryThisMonth += $summary['total_estimated_salary'];
             $coach->monthly_summary = $summary;
+            $coach->monthly_hadir_count = (int) $monthlyAttendanceCounts->get($coach->id, 0);
         }
+
+        $coaches = $allCoaches;
+        $activeAssistantCount = $allCoaches->count();
 
         $upcomingSchedules = TrainingSchedule::with('dutySchedule.assignments.user')
             ->where('date', '>=', $todayDate)
@@ -185,11 +205,14 @@ class DashboardController extends Controller
 
         $recentLogs = ActivityLog::with('user')
             ->latest()
-            ->take(6)
+            ->take(8)
             ->get();
 
         return view('dashboard.superadmin', compact(
             'user',
+            'todayAttendances',
+            'coaches',
+            'activeAssistantCount',
             'totalDojangs',
             'totalCoaches',
             'totalHeadCoaches',

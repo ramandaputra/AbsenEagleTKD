@@ -79,9 +79,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/dojangs/{dojang}', [DojangController::class, 'destroy'])->name('dojangs.destroy');
 
         // Coaches & Users
-        Route::get('/coaches', [UserController::class, 'index'])->name('users.index');
-        Route::post('/coaches', [UserController::class, 'store'])->name('users.store');
-        Route::put('/coaches/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::delete('/coaches/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        // Aliases for /coaches
+        Route::get('/coaches', [UserController::class, 'index'])->name('coaches.index');
+        Route::post('/coaches', [UserController::class, 'store'])->name('coaches.store');
+        Route::put('/coaches/{user}', [UserController::class, 'update'])->name('coaches.update');
+        Route::delete('/coaches/{user}', [UserController::class, 'destroy'])->name('coaches.destroy');
     });
 });

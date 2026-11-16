@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
+use App\Models\ActivityLog;
 use App\Models\Dojang;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,16 +25,17 @@ class UserController extends Controller
         $query = User::with(['dojang', 'role']);
 
         if ($roleFilter) {
-            $query->whereHas('role', fn ($query) => $query->where('name', $roleFilter));
+            $query->whereHas('role', fn ($q) => $q->where('name', $roleFilter));
         }
         if ($dojangFilter) {
             $query->where('dojang_id', $dojangFilter);
         }
 
-        $users = $query->orderBy('role_id')->orderBy('name')->paginate(15)->withQueryString();
+        $users = $query->orderBy('role_id')->orderBy('name')->paginate(20)->withQueryString();
         $dojangs = Dojang::where('is_active', true)->get();
+        $roles = Role::all();
 
-        return view('users.index', compact('users', 'dojangs', 'roleFilter', 'dojangFilter'));
+        return view('users.index', compact('users', 'dojangs', 'roles', 'roleFilter', 'dojangFilter'));
     }
 
     /**
@@ -44,8 +46,9 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:6'],
+            'password' => ['required', 'string', 'min:4'],
             'role' => ['required', Rule::in(['superadmin', 'admin', 'asisten_pelatih'])],
+            'pin' => ['nullable', 'string', 'digits_between:4,6'],
             'phone' => ['nullable', 'string', 'max:30'],
             'belt_level' => ['nullable', 'string', 'max:50'],
             'dojang_id' => ['nullable', 'exists:dojangs,id'],
@@ -55,24 +58,51 @@ class UserController extends Controller
             'bank_account_holder' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
-        $validated['role'] = UserRole::from($validated['role']);
+        $roleModel = Role::firstOrCreate(
+            ['name' => $validated['role']],
+            ['display_name' => match ($validated['role']) {
+                'superadmin' => 'Superadmin',
+                'admin' => 'Pelatih Utama',
+                'asisten_pelatih' => 'Asisten Pelatih',
+            }]
+        );
 
-        User::create($validated);
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'pin' => ! empty($validated['pin']) ? $validated['pin'] : '123456',
+            'role_id' => $roleModel->id,
+            'phone' => $validated['phone'] ?? null,
+            'belt_level' => $validated['belt_level'] ?? null,
+            'dojang_id' => $validated['dojang_id'] ?? null,
+            'rate_per_session' => $validated['rate_per_session'],
+            'bank_name' => $validated['bank_name'] ?? null,
+            'bank_account_number' => $validated['bank_account_number'] ?? null,
+            'bank_account_holder' => $validated['bank_account_holder'] ?? null,
+            'is_active' => true,
+        ]);
 
-        return back()->with('success', 'Akun pelatih baru berhasil didaftarkan ke dalam sistem.');
+        ActivityLog::record(
+            auth()->id() ?? $user->id,
+            'CREATE_USER',
+            "Mendaftarkan pengguna/pelatih baru: {$user->name} ({$roleModel->display_name})."
+        );
+
+        return back()->with('success', "Pengguna baru {$user->name} ({$roleModel->display_name}) berhasil didaftarkan.");
     }
 
     /**
-     * Update user details and honor rate.
+     * Update user details and role.
      */
     public function update(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => ['nullable', 'string', 'min:6'],
+            'password' => ['nullable', 'string', 'min:4'],
             'role' => ['required', Rule::in(['superadmin', 'admin', 'asisten_pelatih'])],
+            'pin' => ['nullable', 'string', 'digits_between:4,6'],
             'phone' => ['nullable', 'string', 'max:30'],
             'belt_level' => ['nullable', 'string', 'max:50'],
             'dojang_id' => ['nullable', 'exists:dojangs,id'],
@@ -80,21 +110,51 @@ class UserController extends Controller
             'bank_name' => ['nullable', 'string', 'max:50'],
             'bank_account_number' => ['nullable', 'string', 'max:50'],
             'bank_account_holder' => ['nullable', 'string', 'max:100'],
-            'is_active' => ['boolean'],
+            'is_active' => ['nullable'],
         ]);
 
+        $roleModel = Role::firstOrCreate(
+            ['name' => $validated['role']],
+            ['display_name' => match ($validated['role']) {
+                'superadmin' => 'Superadmin',
+                'admin' => 'Pelatih Utama',
+                'asisten_pelatih' => 'Asisten Pelatih',
+            }]
+        );
+
+        $oldRole = $user->role?->display_name ?? 'Pelatih';
+
+        $dataToUpdate = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role_id' => $roleModel->id,
+            'phone' => $validated['phone'] ?? null,
+            'belt_level' => $validated['belt_level'] ?? null,
+            'dojang_id' => $validated['dojang_id'] ?? null,
+            'rate_per_session' => $validated['rate_per_session'],
+            'bank_name' => $validated['bank_name'] ?? null,
+            'bank_account_number' => $validated['bank_account_number'] ?? null,
+            'bank_account_holder' => $validated['bank_account_holder'] ?? null,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
+        ];
+
         if (! empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        } else {
-            unset($validated['password']);
+            $dataToUpdate['password'] = Hash::make($validated['password']);
         }
 
-        $validated['role'] = UserRole::from($validated['role']);
-        $validated['is_active'] = $request->boolean('is_active');
+        if (! empty($validated['pin'])) {
+            $dataToUpdate['pin'] = $validated['pin'];
+        }
 
-        $user->update($validated);
+        $user->update($dataToUpdate);
 
-        return back()->with('success', 'Data pelatih dan tarif honor berhasil diperbarui.');
+        ActivityLog::record(
+            auth()->id(),
+            'UPDATE_USER',
+            "Memperbarui data pengguna & role {$user->name} ({$oldRole} -> {$roleModel->display_name})."
+        );
+
+        return back()->with('success', "Data pengguna {$user->name} berhasil diperbarui (Role: {$roleModel->display_name}).");
     }
 
     /**
@@ -106,9 +166,16 @@ class UserController extends Controller
             return back()->withErrors(['error' => 'Anda tidak dapat menghapus akun Anda sendiri.']);
         }
 
+        $name = $user->name;
+        $roleName = $user->role?->display_name ?? 'Pelatih';
         $user->delete();
 
-        return back()->with('success', 'Akun pelatih berhasil dihapus.');
+        ActivityLog::record(
+            auth()->id(),
+            'DELETE_USER',
+            "Menghapus pengguna: {$name} ({$roleName})."
+        );
+
+        return back()->with('success', "Akun pelatih {$name} berhasil dihapus.");
     }
 }
-

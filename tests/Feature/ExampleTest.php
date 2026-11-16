@@ -276,4 +276,106 @@ class ExampleTest extends TestCase
         $response->assertDontSee('Penugasan Dojang');
         $response->assertSee('Kembali ke Beranda');
     }
+
+    public function test_superadmin_dashboard_has_same_style_with_activity_log_and_user_management(): void
+    {
+        $roleSuper = \App\Models\Role::firstOrCreate(['name' => 'superadmin'], ['display_name' => 'Superadmin']);
+        $userSuper = \App\Models\User::create([
+            'name' => 'mingle',
+            'email' => 'mingle@eagletkd.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'role_id' => $roleSuper->id,
+            'pin' => '123456',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($userSuper)->get('/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertSee('Dashboard Superadmin');
+        $response->assertSee('Kelola Pengguna');
+        $response->assertSee('Log Aktivitas');
+        $response->assertSee('Tambah asisten &amp; ubah role', false);
+        $response->assertSee('Presensi');
+        $response->assertSee('Asisten');
+        $response->assertSee('Jadwal');
+        $response->assertSee('Log');
+    }
+
+    public function test_superadmin_can_add_asisten_pelatih_and_update_role(): void
+    {
+        $roleSuper = \App\Models\Role::firstOrCreate(['name' => 'superadmin'], ['display_name' => 'Superadmin']);
+        \App\Models\Role::firstOrCreate(['name' => 'asisten_pelatih'], ['display_name' => 'Asisten Pelatih']);
+        \App\Models\Role::firstOrCreate(['name' => 'admin'], ['display_name' => 'Pelatih Utama']);
+
+        $userSuper = \App\Models\User::create([
+            'name' => 'mingle_admin',
+            'email' => 'mingle2@eagletkd.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'role_id' => $roleSuper->id,
+            'pin' => '123456',
+            'is_active' => true,
+        ]);
+
+        // 1. Visit users page
+        $viewUsers = $this->actingAs($userSuper)->get('/users');
+        $viewUsers->assertStatus(200);
+        $viewUsers->assertSee('Kelola Pengguna &amp; Role', false);
+        $viewUsers->assertSee('Tambah');
+
+        // 2. Superadmin adds a new assistant coach
+        $createResponse = $this->actingAs($userSuper)->post('/users', [
+            'name' => 'Pelatih Baru',
+            'email' => 'baru@eagletkd.com',
+            'password' => 'secret123',
+            'role' => 'asisten_pelatih',
+            'rate_per_session' => 60000,
+            'belt_level' => 'Dan 1 Kukkiwon',
+            'phone' => '08123456789',
+        ]);
+
+        $createResponse->assertRedirect();
+        $this->assertDatabaseHas('users', [
+            'email' => 'baru@eagletkd.com',
+            'name' => 'Pelatih Baru',
+        ]);
+
+        $newUser = \App\Models\User::where('email', 'baru@eagletkd.com')->first();
+        $this->assertEquals('asisten_pelatih', $newUser->role->name);
+
+        // 3. Superadmin changes role to Pelatih Utama (admin)
+        $updateResponse = $this->actingAs($userSuper)->put('/users/' . $newUser->id, [
+            'name' => 'Pelatih Baru Dipromosikan',
+            'email' => 'baru@eagletkd.com',
+            'role' => 'admin',
+            'rate_per_session' => 75000,
+            'is_active' => 1,
+        ]);
+
+        $updateResponse->assertRedirect();
+        $newUser->refresh();
+        $this->assertEquals('admin', $newUser->role->name);
+        $this->assertEquals('Pelatih Baru Dipromosikan', $newUser->name);
+        $this->assertEquals(75000, (int) $newUser->rate_per_session);
+    }
+
+    public function test_superadmin_can_view_activity_logs(): void
+    {
+        $roleSuper = \App\Models\Role::firstOrCreate(['name' => 'superadmin'], ['display_name' => 'Superadmin']);
+        $userSuper = \App\Models\User::create([
+            'name' => 'mingle_logs',
+            'email' => 'mingle_logs@eagletkd.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'role_id' => $roleSuper->id,
+            'pin' => '123456',
+            'is_active' => true,
+        ]);
+
+        \App\Models\ActivityLog::record($userSuper->id, 'LOGIN', 'Superadmin login ke sistem.');
+
+        $response = $this->actingAs($userSuper)->get('/activity-logs');
+        $response->assertStatus(200);
+        $response->assertSee('Log Aktivitas Sistem');
+        $response->assertSee('Superadmin login ke sistem.');
+    }
 }
