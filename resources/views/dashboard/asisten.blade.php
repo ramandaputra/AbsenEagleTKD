@@ -158,24 +158,19 @@
 
             <!-- Tugas Khusus Anda (Jika Ada Penugasan Piket) -->
             @if($todayDuty)
-                <div class="rounded-xl border border-[#0051D5]/20 bg-gradient-to-r from-[#0051D5]/5 to-[#316BF3]/5 p-3 flex items-center justify-between gap-2.5 w-full min-w-0">
-                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div class="w-8 h-8 rounded-lg bg-[#0051D5]/10 text-[#0051D5] flex items-center justify-center shrink-0">
-                            <span class="material-symbols-rounded text-lg">assignment_ind</span>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-[10px] font-bold uppercase tracking-wider text-[#0051D5]">Tugas Khusus Mengajar Anda</p>
-                            <p class="text-xs font-bold text-[#131B2E] truncate mt-0.5">{{ $todayDuty->role_task }}</p>
-                            @if($todayDuty->training_materials)
-                                <p class="text-[10.5px] text-[#64748B] truncate mt-0.5">
-                                    <span class="font-semibold text-[#00288E]">Target:</span> {{ $todayDuty->training_materials }}
-                                </p>
-                            @endif
-                        </div>
+                <div class="rounded-xl border border-[#0051D5]/20 bg-gradient-to-r from-[#0051D5]/5 to-[#316BF3]/5 p-3 flex items-center gap-2.5 w-full min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#0051D5]/10 text-[#0051D5] flex items-center justify-center shrink-0">
+                        <span class="material-symbols-rounded text-lg">assignment_ind</span>
                     </div>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0051D5] text-white shrink-0">
-                        Aktif
-                    </span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-[#0051D5]">Tugas Khusus Mengajar Anda</p>
+                        <p class="text-xs font-bold text-[#131B2E] truncate mt-0.5">{{ $todayDuty->role_task }}</p>
+                        @if($todayDuty->training_materials)
+                            <p class="text-[10.5px] text-[#64748B] truncate mt-0.5">
+                                <span class="font-semibold text-[#00288E]">Target:</span> {{ $todayDuty->training_materials }}
+                            </p>
+                        @endif
+                    </div>
                 </div>
             @endif
 
