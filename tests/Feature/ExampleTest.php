@@ -224,4 +224,51 @@ class ExampleTest extends TestCase
         $response->assertDontSee('cloud_upload');
         $response->assertDontSee('Buka Kamera Ponsel / Galeri');
     }
+
+    public function test_attendance_show_matches_tirtafield_bukti_presensi_with_kembali_ke_beranda(): void
+    {
+        $role = \App\Models\Role::firstOrCreate(['name' => 'asisten_pelatih'], ['display_name' => 'Asisten Pelatih']);
+        $dojang = \App\Models\Dojang::firstOrCreate(['name' => 'Dojang Eagle Central'], [
+            'code' => 'DOJ-CEN',
+            'address' => 'Jl. Merdeka No. 45 Tanjungpinang',
+            'is_active' => true,
+        ]);
+        $user = \App\Models\User::create([
+            'name' => 'Raja',
+            'email' => 'raja_bukti@eagletkd.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'role_id' => $role->id,
+            'dojang_id' => $dojang->id,
+            'pin' => '123456',
+            'is_active' => true,
+        ]);
+
+        $attendance = \App\Models\Attendance::create([
+            'user_id' => $user->id,
+            'date' => '2026-11-16',
+            'time' => '08:15:00',
+            'status' => 'Hadir',
+            'session_rate' => 50000.00,
+        ]);
+
+        \App\Models\AttendancePhoto::create([
+            'attendance_id' => $attendance->id,
+            'photo_path' => 'uploads/attendances/test_foto.jpg',
+            'file_name' => 'test_foto.jpg',
+            'file_size' => 12345,
+        ]);
+
+        $response = $this->actingAs($user)->get('/attendances/' . $attendance->id);
+
+        $response->assertStatus(200);
+        $response->assertSee('Bukti Presensi');
+        $response->assertSee('Presensi Berhasil Terkirim!');
+        $response->assertSee('Data kehadiran Anda telah tercatat dan terverifikasi di sistem Eagle TKD.');
+        $response->assertSee('Waktu Stempel');
+        $response->assertSee('Lokasi Penugasan');
+        $response->assertSee('Dojang Eagle Central');
+        $response->assertSee('Lampiran Bukti Fisik');
+        $response->assertSee('test_foto.jpg');
+        $response->assertSee('Kembali ke Beranda');
+    }
 }

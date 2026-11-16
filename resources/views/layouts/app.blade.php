@@ -116,10 +116,21 @@
                             <p class="text-[11px] text-[#64748B] truncate mt-0.5">{{ auth()->user()->name }} · {{ auth()->user()->role_display_name }}</p>
                         </div>
                     </div>
+                @elseif(request()->routeIs('attendances.show'))
+                    <!-- Top Header when on Bukti Presensi (Matching Tirtafield) -->
+                    <div class="flex items-center justify-between w-full">
+                        <a href="{{ route('dashboard') }}" class="w-9 h-9 rounded-full bg-[#EAEDFF] text-[#131B2E] hover:bg-[#DAE2FD] flex items-center justify-center transition-colors shrink-0" aria-label="Kembali ke Beranda" title="Kembali ke Beranda">
+                            <span class="material-symbols-rounded text-xl">arrow_back</span>
+                        </a>
+                        <h1 class="font-bold text-base text-[#131B2E] text-center font-sans">Bukti Presensi</h1>
+                        <a href="{{ route('dashboard') }}" class="w-8 h-8 rounded-full bg-[#EAEDFF]/70 text-[#64748B] hover:text-[#131B2E] flex items-center justify-center transition-colors shrink-0" aria-label="Tutup" title="Tutup">
+                            <span class="material-symbols-rounded text-lg">close</span>
+                        </a>
+                    </div>
                 @else
                     <!-- Default Main Tab Header (Avatar + Title + Subtitle) -->
                     <div class="flex items-center space-x-3 w-full min-w-0">
-                        @if(request()->routeIs('schedules.index') || request()->routeIs('salary.admin.index') || request()->routeIs('attendances.show'))
+                        @if(request()->routeIs('schedules.index') || request()->routeIs('salary.admin.index'))
                             <a href="{{ route('dashboard') }}"
                                onclick="if (document.referrer && new URL(document.referrer).origin === window.location.origin) { window.history.back(); return false; }"
                                aria-label="Kembali" title="Kembali"
@@ -235,6 +246,7 @@
         </main>
 
         @auth
+        @if(!request()->routeIs('attendances.show'))
         <!-- Floating Bottom Navigation Bar (Matching Tirtafield-Web exactly) -->
         <div class="fixed bottom-3 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 px-3 pointer-events-none no-print">
             <div class="bg-white/95 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#DAE2FD] pointer-events-auto p-1 flex items-center justify-around h-15">
@@ -303,6 +315,7 @@
 
             </div>
         </div>
+        @endif
         @endauth
 
     </div>

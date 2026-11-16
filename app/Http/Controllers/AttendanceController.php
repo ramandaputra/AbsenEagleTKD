@@ -51,9 +51,27 @@ class AttendanceController extends Controller
             abort(404);
         }
 
-        $attendance->load(['user.role', 'trainingSchedule', 'photos', 'dutyAssignment.dutySchedule']);
+        $attendance->load(['user.role', 'user.dojang', 'trainingSchedule', 'photos', 'dutyAssignment.dutySchedule']);
 
-        return view('attendances.show', compact('attendance'));
+        $nextSchedule = TrainingSchedule::where(function ($query) use ($attendance) {
+                $query->where('date', '>', $attendance->date->format('Y-m-d'))
+                    ->orWhere(function ($q) use ($attendance) {
+                        $q->where('date', $attendance->date->format('Y-m-d'))
+                            ->where('start_time', '>', (string) $attendance->time);
+                    });
+            })
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->first();
+
+        if (! $nextSchedule) {
+            $nextSchedule = TrainingSchedule::where('date', '>=', now()->format('Y-m-d'))
+                ->orderBy('date')
+                ->orderBy('start_time')
+                ->first();
+        }
+
+        return view('attendances.show', compact('attendance', 'nextSchedule'));
     }
 
     /**
