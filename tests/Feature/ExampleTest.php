@@ -295,7 +295,8 @@ class ExampleTest extends TestCase
         $response->assertSee('Dashboard Superadmin');
         $response->assertSee('Kelola Pengguna');
         $response->assertSee('Log Aktivitas');
-        $response->assertSee('Tambah asisten &amp; ubah role', false);
+        $response->assertSee('Jadwal, Tugas &amp; Materi Latihan', false);
+        $response->assertSee('Rekap Gaji &amp; Atur Tarif Pertemuan', false);
         $response->assertSee('Presensi');
         $response->assertSee('Asisten');
         $response->assertSee('Jadwal');

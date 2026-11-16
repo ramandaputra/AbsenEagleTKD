@@ -100,39 +100,15 @@
         </div>
     </section>
 
-    <!-- Superadmin Quick Actions (With Kelola Pengguna & Log Aktivitas) -->
+    <!-- Superadmin Quick Actions (Uniform with Admin UI Style) -->
     <section class="space-y-2">
         <div class="px-0.5">
             <h2 class="text-[13.5px] font-bold text-[#131B2E] tracking-tight">Menu Superadmin</h2>
-            <p class="text-[10.5px] text-[#64748B] mt-0.5">Akses penuh kontrol sistem, log aktivitas, dan kelola pengguna.</p>
+            <p class="text-[10.5px] text-[#64748B] mt-0.5">Akses cepat untuk kegiatan hari ini dan pengelolaan asisten.</p>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
-            <!-- 1. Kelola Pengguna (Tambah Asisten & Ubah Role) -->
-            <a href="{{ route('users.index') }}"
-               class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border-2 border-[#0051D5]/40 shadow-xs hover:border-[#0051D5] transition-all bg-gradient-to-r from-blue-50/40 to-white">
-                <span class="w-8 h-8 rounded-lg bg-[#0051D5] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <span class="material-symbols-rounded text-lg">manage_accounts</span>
-                </span>
-                <div class="min-w-0">
-                    <span class="block text-[11px] font-extrabold text-[#00288E] leading-tight">Kelola Pengguna</span>
-                    <span class="block text-[9px] text-[#64748B] mt-0.5 leading-tight">Tambah asisten &amp; ubah role</span>
-                </div>
-            </a>
-
-            <!-- 2. Log Aktivitas Sistem -->
-            <a href="{{ route('activity-logs.index') }}"
-               class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border-2 border-amber-500/40 shadow-xs hover:border-amber-500 transition-all bg-gradient-to-r from-amber-50/40 to-white">
-                <span class="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <span class="material-symbols-rounded text-lg">history</span>
-                </span>
-                <div class="min-w-0">
-                    <span class="block text-[11px] font-extrabold text-[#B45309] leading-tight">Log Aktivitas</span>
-                    <span class="block text-[9px] text-[#64748B] mt-0.5 leading-tight">Audit trail aktivitas sistem</span>
-                </div>
-            </a>
-
-            <!-- 3. Jadwal & Materi Latihan -->
+            <!-- 1. Jadwal, Tugas & Materi Latihan -->
             <a href="{{ route('schedules.index') }}"
                class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-[#D97706]/40 transition-colors">
                 <span class="w-8 h-8 rounded-lg bg-[#EAEDFF] text-[#0051D5] flex items-center justify-center shrink-0">
@@ -141,16 +117,34 @@
                 <span class="block min-w-0 text-[10.5px] font-bold text-[#131B2E] leading-tight">Jadwal, Tugas &amp; Materi Latihan</span>
             </a>
 
-            <!-- 4. Rekap Gaji & Atur Tarif -->
+            <!-- 2. Rekap Gaji & Atur Tarif Pertemuan -->
             <a href="{{ route('salary.admin.index') }}"
                class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-emerald-400 transition-colors">
                 <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
                     <span class="material-symbols-rounded text-lg">payments</span>
                 </span>
-                <span class="block min-w-0 text-[10.5px] font-bold text-[#131B2E] leading-tight">Rekap Gaji &amp; Atur Tarif Honor</span>
+                <span class="block min-w-0 text-[10.5px] font-bold text-[#131B2E] leading-tight">Rekap Gaji &amp; Atur Tarif Pertemuan</span>
             </a>
 
-            <!-- 5. Laporan & Export -->
+            <!-- 3. Kelola Pengguna & Role Pelatih -->
+            <a href="{{ route('users.index') }}"
+               class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-[#0051D5]/40 transition-colors">
+                <span class="w-8 h-8 rounded-lg bg-[#EAEDFF] text-[#0051D5] flex items-center justify-center shrink-0">
+                    <span class="material-symbols-rounded text-lg">manage_accounts</span>
+                </span>
+                <span class="block min-w-0 text-[10.5px] font-bold text-[#131B2E] leading-tight">Kelola Pengguna &amp; Role Pelatih</span>
+            </a>
+
+            <!-- 4. Log Aktivitas Sistem -->
+            <a href="{{ route('activity-logs.index') }}"
+               class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-amber-400 transition-colors">
+                <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-rounded text-lg">history</span>
+                </span>
+                <span class="block min-w-0 text-[10.5px] font-bold text-[#131B2E] leading-tight">Log Aktivitas Sistem</span>
+            </a>
+
+            <!-- 5. Laporan & Export Presensi -->
             <a href="{{ route('reports.index') }}"
                class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-purple-400 transition-colors">
                 <span class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
@@ -159,7 +153,7 @@
                 <span class="block min-w-0 text-[10.5px] font-bold text-[#131B2E] leading-tight">Laporan &amp; Export Presensi</span>
             </a>
 
-            <!-- 6. Cabang Dojang -->
+            <!-- 6. Cabang Unit Dojang -->
             <a href="{{ route('dojangs.index') }}"
                class="min-h-[72px] flex items-center gap-2.5 text-left bg-white rounded-xl p-2.5 border border-[#DAE2FD]/70 shadow-2xs hover:border-sky-400 transition-colors">
                 <span class="w-8 h-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
