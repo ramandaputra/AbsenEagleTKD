@@ -153,25 +153,7 @@
         </div>
     </section>
 
-    <!-- 3. NEXT SCHEDULED ACTIVITY ALERT BANNER (Matching Tirtafield _buildNextActivityBanner) -->
-    <section class="w-full px-3.5 py-3 rounded-xl bg-[#E2E7FF]/50 border border-[#DAE2FD] flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-[#DBE1FF] text-[#0051D5] flex items-center justify-center shrink-0">
-            <span class="material-symbols-rounded text-lg">upcoming</span>
-        </div>
-        <div class="flex-1 min-w-0">
-            <p class="text-[11px] font-medium text-[#64748B]">Sesi Aktivitas Berikutnya</p>
-            <p class="text-[13px] font-bold text-[#131B2E] truncate mt-0.5">
-                @if(isset($nextSchedule) && $nextSchedule)
-                    {{ $nextSchedule->activity_name }} ({{ substr($nextSchedule->start_time, 0, 5) }} WIB)
-                @else
-                    Sesi Latihan Hari Ini Selesai
-                @endif
-            </p>
-        </div>
-        <span class="material-symbols-rounded text-[#C4C5D5] text-xl shrink-0">chevron_right</span>
-    </section>
-
-    <!-- 4. FIXED BOTTOM STICKY ACTION HUB (Matching Tirtafield _buildStickyFooter with 'Kembali ke Beranda') -->
+    <!-- 3. FIXED BOTTOM STICKY ACTION HUB (Matching Tirtafield _buildStickyFooter with 'Kembali ke Beranda') -->
     <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 px-4 py-3 bg-white/95 backdrop-blur-md border-t border-[#DAE2FD] shadow-[0_-4px_20px_rgba(15,23,42,0.06)]">
         <a href="{{ route('dashboard') }}"
            class="w-full h-[52px] bg-[#0051D5] hover:bg-[#00288E] active:scale-[0.98] text-white font-bold rounded-2xl flex items-center justify-center gap-2.5 shadow-md shadow-[#0051D5]/25 transition-all text-sm sm:text-base">
