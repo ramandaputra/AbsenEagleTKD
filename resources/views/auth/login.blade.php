@@ -243,11 +243,6 @@
                 </div>
             </div>
 
-            <!-- Demo Hint Pill -->
-            <div class="w-full max-w-[320px] px-3 py-1.5 rounded-xl bg-[#F2F3FF] border border-[#DAE2FD] text-center text-[10.5px] text-[#00288E]">
-                💡 Gunakan nama: <span class="font-bold">mingle</span>, <span class="font-bold">Lukman</span>, atau <span class="font-bold">Raja</span> • PIN <span class="font-bold">1234</span>
-            </div>
-
         </div>
 
         <!-- Discrete Footer -->

@@ -24,6 +24,7 @@ class ExampleTest extends TestCase
         $loginResponse->assertSee('EAGLE TAEKWONDO');
         $loginResponse->assertSee('PIN Keamanan');
         $loginResponse->assertSee('keypad-btn');
+        $loginResponse->assertDontSee('Gunakan nama:');
     }
 
     /**
