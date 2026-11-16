@@ -27,18 +27,28 @@ class ReportController extends Controller
             abort(403);
         }
 
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
-        $userId = $request->input('user_id');
-        $status = $request->input('status');
+        if ($request->filled('month') && $request->filled('year')) {
+            $month = (int) $request->input('month');
+            $year = (int) $request->input('year');
+            $start = Carbon::create($year, $month, 1)->startOfMonth();
+            $end = Carbon::create($year, $month, 1)->endOfMonth();
+            $startDate = $start->format('Y-m-d');
+            $endDate = $end->format('Y-m-d');
+        } else {
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+        }
 
-        $data = $this->reportService->getReportData($startDate, $endDate, $userId ? (int) $userId : null, $status);
+        $userId = $request->input('user_id');
+
+        $data = $this->reportService->getReportData($startDate, $endDate, $userId ? (int) $userId : null, 'Hadir');
         $coaches = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))->where('is_active', true)->get();
 
         return view('reports.index', array_merge($data, [
             'coachesList' => $coaches,
             'selectedUserId' => $userId,
-            'selectedStatus' => $status,
+            'selectedMonth' => (int) Carbon::parse($startDate)->format('n'),
+            'selectedYear' => (int) Carbon::parse($startDate)->format('Y'),
         ]));
     }
 

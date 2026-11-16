@@ -40,6 +40,20 @@ class ReportService
         $start = $startDate ? Carbon::parse($startDate)->startOfDay() : Carbon::now()->startOfMonth();
         $end = $endDate ? Carbon::parse($endDate)->endOfDay() : Carbon::now()->endOfMonth();
 
+        // Generate day list for the period (Gantt chart dates)
+        $periodDates = [];
+        $cursor = $start->copy();
+        while ($cursor->lte($end)) {
+            $periodDates[] = [
+                'date' => $cursor->format('Y-m-d'),
+                'day' => (int) $cursor->format('j'),
+                'day_name' => $cursor->translatedFormat('D'),
+                'is_weekend' => $cursor->isWeekend(),
+                'is_today' => $cursor->isToday(),
+            ];
+            $cursor->addDay();
+        }
+
         $attendanceQuery = Attendance::with(['user.role', 'trainingSchedule', 'photos', 'dutyAssignment'])
             ->whereBetween('date', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
 
@@ -50,7 +64,7 @@ class ReportService
             $attendanceQuery->where('status', $status);
         }
 
-        $attendancesList = $attendanceQuery->orderBy('date', 'desc')->orderBy('time', 'desc')->get();
+        $attendancesList = $attendanceQuery->orderBy('date', 'asc')->orderBy('time', 'asc')->get();
 
         $coachesQuery = User::whereHas('role', fn ($q) => $q->where('name', 'asisten_pelatih'))->where('is_active', true);
         if ($userId) {
@@ -60,6 +74,8 @@ class ReportService
 
         $coachesReport = [];
         $totalHadir = 0;
+        $totalSalaryOverall = 0;
+        $activeCoachesCount = 0;
         $totalIzin = 0;
         $totalSakit = 0;
         $totalAlpa = 0;
@@ -68,7 +84,8 @@ class ReportService
         foreach ($coaches as $coach) {
             $coachAttendances = $attendancesList->where('user_id', $coach->id);
 
-            $hadir = $coachAttendances->where('status', 'Hadir')->count();
+            $hadirAttendances = $coachAttendances->where('status', 'Hadir');
+            $hadir = $hadirAttendances->count();
             $izin = $coachAttendances->where('status', 'Izin')->count();
             $sakit = $coachAttendances->where('status', 'Sakit')->count();
             $alpa = $coachAttendances->where('status', 'Alpa')->count();
@@ -80,6 +97,18 @@ class ReportService
                 })
                 ->count();
 
+            // Attended dates map for Gantt Chart (only Hadir)
+            $attendedDates = [];
+            foreach ($hadirAttendances as $att) {
+                $dStr = $att->date instanceof Carbon ? $att->date->format('Y-m-d') : Carbon::parse($att->date)->format('Y-m-d');
+                $attendedDates[$dStr][] = [
+                    'id' => $att->id,
+                    'time' => substr((string) $att->time, 0, 5),
+                    'activity' => $att->trainingSchedule?->activity_name ?? 'Latihan Mandiri',
+                    'notes' => $att->notes,
+                ];
+            }
+
             $totalActivity = $dutyCount > 0 ? $dutyCount : ($hadir + $izin + $sakit + $alpa);
             $attendanceRate = $totalActivity > 0 ? round(($hadir / $totalActivity) * 100, 1) : 0.0;
             $totalSalary = $hadir * (float) $coach->rate_per_session;
@@ -87,6 +116,8 @@ class ReportService
             $coachesReport[] = [
                 'coach' => $coach,
                 'hadir_count' => $hadir,
+                'attended_dates' => $attendedDates,
+                'attended_days_list' => array_keys($attendedDates),
                 'izin_count' => $izin,
                 'sakit_count' => $sakit,
                 'alpa_count' => $alpa,
@@ -96,6 +127,10 @@ class ReportService
             ];
 
             $totalHadir += $hadir;
+            $totalSalaryOverall += $totalSalary;
+            if ($hadir > 0) {
+                $activeCoachesCount++;
+            }
             $totalIzin += $izin;
             $totalSakit += $sakit;
             $totalAlpa += $alpa;
@@ -105,13 +140,19 @@ class ReportService
         return [
             'start_date' => $start->format('Y-m-d'),
             'end_date' => $end->format('Y-m-d'),
+            'month' => (int) $start->format('n'),
+            'year' => (int) $start->format('Y'),
+            'month_name' => $start->translatedFormat('F Y'),
+            'period_dates' => $periodDates,
             'coaches' => $coachesReport,
             'total_hadir' => $totalHadir,
+            'total_salary_overall' => $totalSalaryOverall,
+            'active_coaches_count' => $activeCoachesCount,
             'total_izin' => $totalIzin,
             'total_sakit' => $totalSakit,
             'total_alpa' => $totalAlpa,
             'total_duties_overall' => $totalDutiesOverall,
-            'attendances_list' => $attendancesList,
+            'attendances_list' => $attendancesList->where('status', 'Hadir'),
         ];
     }
 
@@ -141,28 +182,24 @@ class ReportService
             fputcsv($handle, ['Periode', $data['start_date'].' s/d '.$data['end_date']]);
             fputcsv($handle, []);
 
-            // Summary Table Header
-            fputcsv($handle, ['No', 'Nama Asisten Pelatih', 'Sabuk', 'Tugas Piket', 'Hadir', 'Izin', 'Sakit', 'Alpa', '% Kehadiran', 'Tarif/Sesi', 'Total Honor']);
+            // Summary Table Header (Focus on Hadir)
+            fputcsv($handle, ['No', 'Nama Asisten Pelatih', 'Sabuk', 'Sesi Hadir', 'Tarif/Sesi', 'Total Honor', 'Tanggal Hadir']);
 
             foreach ($data['coaches'] as $index => $row) {
                 fputcsv($handle, [
                     $index + 1,
                     $row['coach']->name,
                     $row['coach']->belt_level ?: '-',
-                    $row['total_duties'],
                     $row['hadir_count'],
-                    $row['izin_count'],
-                    $row['sakit_count'],
-                    $row['alpa_count'],
-                    $row['attendance_rate'].'%',
                     $row['coach']->rate_per_session,
                     $row['total_salary'],
+                    implode(', ', $row['attended_days_list']),
                 ]);
             }
 
             fputcsv($handle, []);
-            fputcsv($handle, ['RINCIAN RIWAYAT ABSENSI']);
-            fputcsv($handle, ['No', 'Tanggal', 'Jam', 'Nama Pelatih', 'Kegiatan Latihan', 'Status', 'Keterangan']);
+            fputcsv($handle, ['RINCIAN RIWAYAT KEHADIRAN (HADIR)']);
+            fputcsv($handle, ['No', 'Tanggal', 'Jam', 'Nama Pelatih', 'Kegiatan Latihan', 'Status', 'Catatan']);
 
             foreach ($data['attendances_list'] as $idx => $att) {
                 fputcsv($handle, [
@@ -171,7 +208,7 @@ class ReportService
                     substr($att->time, 0, 5),
                     $att->user->name,
                     $att->trainingSchedule ? $att->trainingSchedule->activity_name : 'Latihan Mandiri',
-                    $att->status,
+                    'Hadir',
                     $att->notes ?: '-',
                 ]);
             }

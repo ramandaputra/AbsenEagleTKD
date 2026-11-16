@@ -379,4 +379,25 @@ class ExampleTest extends TestCase
         $response->assertSee('Log Aktivitas Sistem');
         $response->assertSee('Superadmin login ke sistem.');
     }
+
+    public function test_reports_shows_gantt_chart_with_hadir_only(): void
+    {
+        $roleSuper = \App\Models\Role::firstOrCreate(['name' => 'superadmin'], ['display_name' => 'Superadmin']);
+        $userSuper = \App\Models\User::create([
+            'name' => 'mingle_reports',
+            'email' => 'mingle_reports@eagletkd.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'role_id' => $roleSuper->id,
+            'pin' => '123456',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($userSuper)->get('/reports');
+        $response->assertStatus(200);
+        $response->assertSee('Gantt Chart');
+        $response->assertSee('Total Sesi Hadir');
+        $response->assertSee('Akumulasi Honor');
+        $response->assertDontSee('Total Sakit');
+        $response->assertDontSee('Total Izin');
+    }
 }
