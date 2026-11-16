@@ -268,7 +268,9 @@ class ExampleTest extends TestCase
         $response->assertSee('Lokasi Penugasan');
         $response->assertSee('Dojang Eagle Central');
         $response->assertSee('Lampiran Bukti Fisik');
-        $response->assertSee('test_foto.jpg');
+        $response->assertSee('Raja16112026.jpg');
+        $response->assertDontSee('BERSTEMPEL LOKASI');
+        $response->assertDontSee('Foto Presensi Sah & Terverifikasi');
         $response->assertSee('Kembali ke Beranda');
     }
 }

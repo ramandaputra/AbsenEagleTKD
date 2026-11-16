@@ -137,15 +137,23 @@ class AttendanceController extends Controller
             File::makeDirectory($uploadDir, 0755, true, true);
         }
 
+        $cleanName = preg_replace('/[^A-Za-z0-9]/', '', $user->name);
+        $dateStr = $now->format('dmY');
+
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
-            $filename = 'att_'.date('Ymd_His').'_'.Str::random(8).'.'.$file->getClientOriginalExtension();
-            $file->move($uploadDir, $filename);
+            $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+            if ($ext === 'jpeg') {
+                $ext = 'jpg';
+            }
+            $displayFileName = $cleanName . $dateStr . '.' . $ext;
+            $diskFileName = $cleanName . $dateStr . '_' . date('His') . '_' . Str::random(4) . '.' . $ext;
+            $file->move($uploadDir, $diskFileName);
 
             AttendancePhoto::create([
                 'attendance_id' => $attendance->id,
-                'photo_path' => 'uploads/attendances/'.$filename,
-                'file_name' => $filename,
+                'photo_path' => 'uploads/attendances/'.$diskFileName,
+                'file_name' => $displayFileName,
                 'file_size' => $file->getSize(),
             ]);
         } elseif ($request->filled('photo_base64')) {
@@ -156,16 +164,20 @@ class AttendanceController extends Controller
             } else {
                 $type = 'jpg';
             }
+            if ($type === 'jpeg') {
+                $type = 'jpg';
+            }
             $imageData = base64_decode($imageData);
 
             if ($imageData !== false) {
-                $filename = 'att_cam_'.date('Ymd_His').'_'.Str::random(8).'.'.$type;
-                file_put_contents($uploadDir.'/'.$filename, $imageData);
+                $displayFileName = $cleanName . $dateStr . '.' . $type;
+                $diskFileName = $cleanName . $dateStr . '_' . date('His') . '_' . Str::random(4) . '.' . $type;
+                file_put_contents($uploadDir.'/'.$diskFileName, $imageData);
 
                 AttendancePhoto::create([
                     'attendance_id' => $attendance->id,
-                    'photo_path' => 'uploads/attendances/'.$filename,
-                    'file_name' => $filename,
+                    'photo_path' => 'uploads/attendances/'.$diskFileName,
+                    'file_name' => $displayFileName,
                     'file_size' => strlen($imageData),
                 ]);
             }

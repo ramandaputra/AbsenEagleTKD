@@ -6,7 +6,14 @@
 @php
     $photo = $attendance->photos->first();
     $photoUrl = $photo ? asset($photo->photo_path) : null;
-    $photoFileName = $photo?->file_name ?? ('Swafoto_' . $attendance->date->format('Ymd') . '_' . str_replace(':', '', substr((string) $attendance->time, 0, 5)) . '.jpg');
+    $cleanName = preg_replace('/[^A-Za-z0-9]/', '', $attendance->user?->name ?? 'User');
+    $dateStr = $attendance->date ? $attendance->date->format('dmY') : now()->format('dmY');
+    $ext = $photo ? (pathinfo($photo->photo_path, PATHINFO_EXTENSION) ?: 'jpg') : 'jpg';
+    if (strtolower($ext) === 'jpeg') {
+        $ext = 'jpg';
+    }
+    // Format Namatanggal: e.g. Raja16112026.jpg
+    $photoFileName = $cleanName . $dateStr . '.' . $ext;
     $timeOnly = substr((string) $attendance->time, 0, 5);
 @endphp
 
@@ -124,16 +131,13 @@
             <!-- Divider -->
             <div class="border-t border-[#DAE2FD]/60"></div>
 
-            <!-- Metric 3: Attached Selfie Snapshot & Geotag Stamp -->
+            <!-- Metric 3: Attached Selfie Snapshot (Clean without Berstempel Lokasi or Foto Presensi Sah) -->
             <div class="flex items-center gap-3">
                 <!-- Thumbnail -->
                 @if($photoUrl)
                     <button type="button" @click="showModal = true"
                             class="relative w-16 h-16 rounded-xl overflow-hidden border border-[#DAE2FD] shadow-xs group shrink-0 focus:outline-none focus:ring-2 focus:ring-[#0051D5]">
                         <img src="{{ $photoUrl }}" alt="Bukti Foto" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
-                        <div class="absolute bottom-0 inset-x-0 bg-[#283044]/90 py-0.5 text-[7.5px] font-bold text-[#EEF0FF] tracking-wider text-center">
-                            BERSTEMPEL LOKASI
-                        </div>
                     </button>
                 @else
                     <div class="w-16 h-16 rounded-xl bg-[#EAEDFF] border border-[#DAE2FD] flex items-center justify-center text-[#64748B] shrink-0">
@@ -141,16 +145,12 @@
                     </div>
                 @endif
 
-                <!-- Metadata Info -->
+                <!-- Metadata Info: Format Namatanggal -->
                 <div class="flex-1 min-w-0">
                     <p class="text-[10px] font-semibold text-[#64748B] tracking-wider uppercase">Lampiran Bukti Fisik</p>
-                    <p class="text-[12.5px] font-semibold text-[#131B2E] truncate mt-0.5" title="{{ $photoFileName }}">
+                    <p class="text-[13px] font-semibold text-[#131B2E] truncate mt-1" title="{{ $photoFileName }}">
                         {{ $photoFileName }}
                     </p>
-                    <div class="flex items-center gap-1.5 mt-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#0051D5]"></span>
-                        <span class="text-[11px] font-medium text-[#0051D5] truncate">Foto Presensi Sah &amp; Terverifikasi</span>
-                    </div>
                 </div>
 
                 <!-- Fullscreen Button -->
