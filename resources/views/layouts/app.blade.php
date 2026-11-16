@@ -223,8 +223,30 @@
         <div class="fixed bottom-3 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 px-3 pointer-events-none no-print">
             <div class="bg-white/95 backdrop-blur-lg rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#DAE2FD] pointer-events-auto p-1 flex items-center justify-around h-15">
 
-                @if(auth()->user()->isAsistenPelatih() || request()->routeIs('profile.*') || (auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin()))
-                    {{-- Asisten Pelatih and Admin/Pelatih use Dashboard and Akun tabs. --}}
+                @if(auth()->user()->isSuperAdmin())
+                    {{-- SUPERADMIN: Hanya Dashboard dan Akun Saya --}}
+                    <!-- Tab 1: Dashboard -->
+                    <a href="{{ route('dashboard') }}"
+                       class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all relative {{ request()->routeIs('dashboard') ? 'text-[#00288E] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
+                        <span class="material-symbols-rounded text-[22px] {{ request()->routeIs('dashboard') ? 'fill' : '' }}">dashboard</span>
+                        <span class="text-[11px] mt-0.5">Dashboard</span>
+                        @if(request()->routeIs('dashboard'))
+                            <div class="w-1 h-1 rounded-full bg-[#00288E] mt-0.5"></div>
+                        @endif
+                    </a>
+
+                    <!-- Tab 2: Akun Saya -->
+                    <a href="{{ route('profile.show') }}"
+                       class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all relative {{ request()->routeIs('profile.*') ? 'text-[#00288E] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
+                        <span class="material-symbols-rounded text-[22px] {{ request()->routeIs('profile.*') ? 'fill' : '' }}">person</span>
+                        <span class="text-[11px] mt-0.5">Akun Saya</span>
+                        @if(request()->routeIs('profile.*'))
+                            <div class="w-1 h-1 rounded-full bg-[#00288E] mt-0.5"></div>
+                        @endif
+                    </a>
+
+                @else
+                    {{-- Asisten Pelatih and Admin/Pelatih Utama: Beranda and Akun tabs --}}
                     <!-- Tab 1: Beranda -->
                     <a href="{{ route('dashboard') }}"
                        class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all relative {{ request()->routeIs('dashboard') ? 'text-[#0051D5] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
@@ -242,45 +264,6 @@
                         <span class="text-[11px] mt-0.5">Akun</span>
                         @if(request()->routeIs('profile.*'))
                             <div class="w-1 h-1 rounded-full bg-[#0051D5] mt-0.5"></div>
-                        @endif
-                    </a>
-
-                @else
-                    {{-- SUPERADMIN: Full Navigation Tabs --}}
-                    <!-- Beranda -->
-                    <a href="{{ route('dashboard') }}" class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'text-[#00288E] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
-                        <span class="material-symbols-rounded text-[20px] {{ request()->routeIs('dashboard') ? 'fill' : '' }}">home</span>
-                        <span class="text-[10px] mt-0.5">Beranda</span>
-                        @if(request()->routeIs('dashboard'))
-                            <div class="w-1 h-1 rounded-full bg-[#00288E] mt-0.5"></div>
-                        @endif
-                    </a>
-
-                    <!-- Jadwal -->
-                    <a href="{{ route('schedules.index') }}" class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all {{ request()->routeIs('schedules.*') ? 'text-[#00288E] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
-                        <span class="material-symbols-rounded text-[20px] {{ request()->routeIs('schedules.*') ? 'fill' : '' }}">calendar_month</span>
-                        <span class="text-[10px] mt-0.5">Jadwal</span>
-                        @if(request()->routeIs('schedules.*'))
-                            <div class="w-1 h-1 rounded-full bg-[#00288E] mt-0.5"></div>
-                        @endif
-                    </a>
-
-                    <!-- Tombol Check-in Float -->
-                    <a href="{{ route('attendances.create') }}" class="flex flex-col items-center -mt-5 group px-1">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-[#00288E] to-[#316BF3] p-0.5 shadow-md shadow-[#00288E]/30 group-active:scale-95 transition-transform flex items-center justify-center">
-                            <div class="w-full h-full rounded-full bg-[#00288E] flex items-center justify-center text-white">
-                                <span class="material-symbols-rounded text-xl">photo_camera</span>
-                            </div>
-                        </div>
-                        <span class="text-[9.5px] font-bold text-[#00288E] mt-0.5">Check-in</span>
-                    </a>
-
-                    <!-- Akun -->
-                    <a href="{{ route('profile.show') }}" class="flex-1 flex flex-col items-center py-1 rounded-xl transition-all {{ request()->routeIs('profile.*') ? 'text-[#00288E] font-bold' : 'text-[#64748B] hover:text-slate-800 font-medium' }}">
-                        <span class="material-symbols-rounded text-[20px] {{ request()->routeIs('profile.*') ? 'fill' : '' }}">person</span>
-                        <span class="text-[10px] mt-0.5">Akun</span>
-                        @if(request()->routeIs('profile.*'))
-                            <div class="w-1 h-1 rounded-full bg-[#00288E] mt-0.5"></div>
                         @endif
                     </a>
                 @endif
