@@ -52,7 +52,7 @@ class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:30'],
             'belt_level' => ['nullable', 'string', 'max:50'],
             'dojang_id' => ['nullable', 'exists:dojangs,id'],
-            'rate_per_session' => ['required', 'numeric', 'min:0'],
+            'rate_per_session' => ['nullable', 'numeric', 'min:0'],
             'bank_name' => ['nullable', 'string', 'max:50'],
             'bank_account_number' => ['nullable', 'string', 'max:50'],
             'bank_account_holder' => ['nullable', 'string', 'max:100'],
@@ -76,7 +76,7 @@ class UserController extends Controller
             'phone' => $validated['phone'] ?? null,
             'belt_level' => $validated['belt_level'] ?? null,
             'dojang_id' => $validated['dojang_id'] ?? null,
-            'rate_per_session' => $validated['rate_per_session'],
+            'rate_per_session' => $validated['rate_per_session'] ?? 50000,
             'bank_name' => $validated['bank_name'] ?? null,
             'bank_account_number' => $validated['bank_account_number'] ?? null,
             'bank_account_holder' => $validated['bank_account_holder'] ?? null,
@@ -106,7 +106,7 @@ class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:30'],
             'belt_level' => ['nullable', 'string', 'max:50'],
             'dojang_id' => ['nullable', 'exists:dojangs,id'],
-            'rate_per_session' => ['required', 'numeric', 'min:0'],
+            'rate_per_session' => ['nullable', 'numeric', 'min:0'],
             'bank_name' => ['nullable', 'string', 'max:50'],
             'bank_account_number' => ['nullable', 'string', 'max:50'],
             'bank_account_holder' => ['nullable', 'string', 'max:100'],
@@ -131,12 +131,15 @@ class UserController extends Controller
             'phone' => $validated['phone'] ?? null,
             'belt_level' => $validated['belt_level'] ?? null,
             'dojang_id' => $validated['dojang_id'] ?? null,
-            'rate_per_session' => $validated['rate_per_session'],
             'bank_name' => $validated['bank_name'] ?? null,
             'bank_account_number' => $validated['bank_account_number'] ?? null,
             'bank_account_holder' => $validated['bank_account_holder'] ?? null,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ];
+
+        if (array_key_exists('rate_per_session', $validated) && $validated['rate_per_session'] !== null) {
+            $dataToUpdate['rate_per_session'] = $validated['rate_per_session'];
+        }
 
         if (! empty($validated['password'])) {
             $dataToUpdate['password'] = Hash::make($validated['password']);

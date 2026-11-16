@@ -323,6 +323,8 @@ class ExampleTest extends TestCase
         $viewUsers->assertStatus(200);
         $viewUsers->assertSee('Kelola Pengguna &amp; Role', false);
         $viewUsers->assertSee('Tambah');
+        $viewUsers->assertSee('bi-chevron-right');
+        $viewUsers->assertDontSee('Tarif per Sesi');
 
         // 2. Superadmin adds a new assistant coach
         $createResponse = $this->actingAs($userSuper)->post('/users', [

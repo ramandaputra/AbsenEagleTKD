@@ -3,9 +3,9 @@
 @section('title', 'Kelola Pengguna & Role Pelatih')
 
 @section('content')
-<div class="space-y-3.5 pb-20" x-data="userManager()">
+<div class="space-y-3 pb-20" x-data="userManager()">
 
-    <!-- Executive Header Banner (Matching Schedules & Salary Style) -->
+    <!-- Executive Header Banner -->
     <section class="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#00227A] via-[#00144D] to-[#070E28] p-4 text-white shadow-lg">
         <div class="pointer-events-none absolute -right-5 -top-5 h-36 w-36 rounded-full bg-blue-500/20 blur-xl"></div>
         <div class="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-cyan-400/10 blur-xl"></div>
@@ -16,7 +16,7 @@
                     Manajemen Pengguna
                 </span>
                 <h1 class="mt-1.5 text-sm font-extrabold tracking-tight">Kelola Pengguna &amp; Role</h1>
-                <p class="mt-0.5 text-[11px] font-medium text-[#7DD3FC]">Tambah asisten pelatih, atur hak akses, dan tarif per sesi.</p>
+                <p class="mt-0.5 text-[11px] font-medium text-[#7DD3FC]">Tambah asisten pelatih dan atur hak akses role pengguna.</p>
             </div>
 
             <button type="button" @click="openAddModal()"
@@ -49,8 +49,8 @@
         </div>
     </section>
 
-    <!-- User List Cards -->
-    <section class="space-y-2.5">
+    <!-- Clean User List (Tampilan Hanya Nama dan Role) -->
+    <section class="space-y-2">
         @forelse($users as $u)
             @php
                 $roleName = $u->role?->name ?? 'asisten_pelatih';
@@ -60,82 +60,96 @@
                     default => 'bg-blue-50 text-blue-700 border-blue-200',
                 };
                 $roleDisplayName = $u->role?->display_name ?? 'Asisten Pelatih';
+
+                $userDetail = [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'phone' => $u->phone ?: '-',
+                    'role_name' => $roleName,
+                    'role_display' => $roleDisplayName,
+                    'role_badge_class' => $roleBadgeClass,
+                    'belt_level' => $u->belt_level ?: '-',
+                    'dojang_id' => $u->dojang_id,
+                    'dojang_name' => $u->dojang?->name ?? 'Semua Dojang (Pusat)',
+                    'rate_per_session' => (int) $u->rate_per_session,
+                    'bank_name' => $u->bank_name ?: '-',
+                    'bank_account_number' => $u->bank_account_number ?: '-',
+                    'bank_account_holder' => $u->bank_account_holder ?: '-',
+                    'has_pin' => !empty($u->pin),
+                    'is_active' => (bool) $u->is_active,
+                    'avatar' => $u->avatar ? '/' . $u->avatar : null,
+                    'is_self' => $u->id === auth()->id(),
+                ];
             @endphp
-            <article class="bg-white border border-[#DAE2FD] rounded-2xl p-3.5 shadow-xs space-y-3">
-                <div class="flex items-start justify-between gap-2.5">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-11 h-11 rounded-full {{ $roleName === 'superadmin' ? 'bg-[#00288E] text-white' : ($roleName === 'admin' ? 'bg-[#D97706] text-white' : 'bg-[#EAEDFF] text-[#0051D5]') }} flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-                            @if($u->avatar)
-                                <img src="/{{ $u->avatar }}" alt="{{ $u->name }}" class="w-full h-full rounded-full object-cover">
-                            @else
-                                <span class="material-symbols-rounded text-2xl">
-                                    {{ $roleName === 'superadmin' ? 'security' : 'sports_martial_arts' }}
+            <article class="bg-white border border-[#DAE2FD]/80 hover:border-[#0051D5]/40 rounded-2xl p-3 shadow-2xs transition-all flex items-center justify-between gap-3">
+                <!-- Sisi Kiri: Avatar, Nama, dan Role (Hanya Nama dan Role) -->
+                <div class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+                     @click="openDetailModal({{ json_encode($userDetail) }})"
+                     title="Klik untuk melihat detail pengguna">
+                    <div class="w-10 h-10 rounded-full {{ $roleName === 'superadmin' ? 'bg-[#00288E] text-white' : ($roleName === 'admin' ? 'bg-[#D97706] text-white' : 'bg-[#EAEDFF] text-[#0051D5]') }} flex items-center justify-center font-bold text-sm shrink-0 shadow-xs overflow-hidden">
+                        @if($u->avatar)
+                            <img src="/{{ $u->avatar }}" alt="{{ $u->name }}" class="w-full h-full object-cover">
+                        @else
+                            <span class="material-symbols-rounded text-xl">
+                                {{ $roleName === 'superadmin' ? 'security' : ($roleName === 'admin' ? 'workspace_premium' : 'sports_martial_arts') }}
+                            </span>
+                        @endif
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h2 class="text-[13px] font-bold text-[#131B2E] truncate">{{ $u->name }}</h2>
+                            @if($u->id === auth()->id())
+                                <span class="px-1.5 py-0.2 rounded-full bg-[#0051D5] text-white text-[9px] font-bold">Anda</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <span class="inline-block px-2 py-0.5 rounded-full text-[9.5px] font-bold border {{ $roleBadgeClass }}">
+                                {{ $roleDisplayName }}
+                            </span>
+                            @if(!$u->is_active)
+                                <span class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500">
+                                    Non-aktif
                                 </span>
                             @endif
                         </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <h2 class="text-xs sm:text-sm font-bold text-[#131B2E] truncate">{{ $u->name }}</h2>
-                                @if($u->id === auth()->id())
-                                    <span class="px-1.5 py-0.2 rounded-full bg-[#0051D5] text-white text-[9px] font-bold">Anda</span>
-                                @endif
-                            </div>
-                            <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold border {{ $roleBadgeClass }}">
-                                {{ $roleDisplayName }}
-                            </span>
-                            <p class="text-[10.5px] text-[#64748B] truncate mt-1">
-                                {{ $u->email }} &bull; {{ $u->phone ?: 'No HP -' }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="text-right shrink-0">
-                        <span class="text-[9.5px] text-[#64748B] font-semibold block">Tarif per Sesi</span>
-                        <div class="text-xs sm:text-sm font-mono font-bold text-emerald-700 mt-0.5">
-                            Rp {{ number_format($u->rate_per_session, 0, ',', '.') }}
-                        </div>
-                        <span class="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full mt-1 {{ $u->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">
-                            {{ $u->is_active ? 'Aktif' : 'Non-aktif' }}
-                        </span>
                     </div>
                 </div>
 
-                <!-- Info Sabuk & Dojang -->
-                <div class="grid grid-cols-2 gap-2 p-2 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-[10.5px] text-[#64748B]">
-                    <div class="truncate">
-                        <span class="font-semibold text-[#131B2E]">Sabuk:</span> {{ $u->belt_level ?: '-' }}
-                    </div>
-                    <div class="truncate text-right">
-                        <span class="font-semibold text-[#131B2E]">Dojang:</span> {{ $u->dojang?->name ?? 'Semua Unit' }}
-                    </div>
-                </div>
+                <!-- Sisi Kanan: Tombol Edit, Hapus, dan Chevron Detail -->
+                <div class="flex items-center gap-1 shrink-0">
+                    <!-- Tombol Edit -->
+                    <button type="button"
+                            @click="openEditModal({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ $u->email }}', '{{ $roleName }}', '{{ addslashes($u->phone ?? '') }}', '{{ addslashes($u->belt_level ?? '') }}', '{{ $u->dojang_id ?? '' }}', {{ $u->rate_per_session }}, '{{ addslashes($u->bank_name ?? '') }}', '{{ addslashes($u->bank_account_number ?? '') }}', '{{ addslashes($u->bank_account_holder ?? '') }}', {{ $u->is_active ? 1 : 0 }})"
+                            title="Edit Pengguna"
+                            aria-label="Edit pengguna {{ $u->name }}"
+                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EAEDFF] text-[#0051D5] hover:bg-[#DAE2FD] transition-colors">
+                        <span class="material-symbols-rounded text-base">edit</span>
+                    </button>
 
-                <!-- Action Button: Ubah Role & Edit Pelatih -->
-                <div class="flex items-center justify-between pt-1 border-t border-[#DAE2FD]/60 text-xs">
-                    <span class="text-[10px] text-[#64748B] font-mono">
-                        PIN: <strong class="text-[#131B2E]">{{ $u->pin ? '******' : 'Belum diatur' }}</strong>
-                    </span>
+                    <!-- Tombol Hapus -->
+                    @if($u->id !== auth()->id())
+                        <form action="{{ route('users.destroy', $u) }}" method="POST"
+                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $u->name }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    title="Hapus Pengguna"
+                                    aria-label="Hapus pengguna {{ $u->name }}"
+                                    class="flex h-8 w-8 items-center justify-center rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors">
+                                <span class="material-symbols-rounded text-base">delete</span>
+                            </button>
+                        </form>
+                    @endif
 
-                    <div class="flex items-center gap-1.5">
-                        <button type="button"
-                                @click="openEditModal({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ $u->email }}', '{{ $roleName }}', '{{ addslashes($u->phone ?? '') }}', '{{ addslashes($u->belt_level ?? '') }}', '{{ $u->dojang_id ?? '' }}', {{ $u->rate_per_session }}, '{{ addslashes($u->bank_name ?? '') }}', '{{ addslashes($u->bank_account_number ?? '') }}', '{{ addslashes($u->bank_account_holder ?? '') }}', {{ $u->is_active ? 1 : 0 }})"
-                                class="px-2.5 py-1 rounded-xl bg-[#EAEDFF] hover:bg-[#DAE2FD] text-[#0051D5] font-bold text-[11px] flex items-center gap-1 transition-colors">
-                            <span class="material-symbols-rounded text-sm">edit</span>
-                            <span>Ubah Role &amp; Data</span>
-                        </button>
-
-                        @if($u->id !== auth()->id())
-                            <form action="{{ route('users.destroy', $u) }}" method="POST"
-                                  onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $u->name }}?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" title="Hapus pengguna"
-                                        class="p-1 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors flex items-center justify-center">
-                                    <span class="material-symbols-rounded text-base">delete</span>
-                                </button>
-                            </form>
-                        @endif
-                    </div>
+                    <!-- Tombol Chevron Right untuk Melihat Detail Pengguna -->
+                    <button type="button"
+                            @click="openDetailModal({{ json_encode($userDetail) }})"
+                            title="Lihat Detail Pengguna"
+                            aria-label="Lihat detail pengguna {{ $u->name }}"
+                            class="flex h-8 w-8 items-center justify-center rounded-xl text-[#64748B] hover:bg-[#EAEDFF] hover:text-[#00288E] transition-colors">
+                        <i class="bi bi-chevron-right text-sm" aria-hidden="true"></i>
+                    </button>
                 </div>
             </article>
         @empty
@@ -151,7 +165,144 @@
         </div>
     </section>
 
-    <!-- Modal Form: Tambah / Ubah Role Pengguna -->
+    <!-- Modal Detail Pengguna (Dibuka dari Tombol <i class="bi bi-chevron-right"></i>) -->
+    <div x-show="showDetailModal" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto"
+         @keydown.escape.window="showDetailModal = false">
+
+        <div class="bg-white border border-[#DAE2FD] rounded-3xl p-5 w-full max-w-md shadow-2xl space-y-4 my-8"
+             @click.away="showDetailModal = false">
+
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-2.5 border-b border-[#DAE2FD]">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-rounded text-[#0051D5] text-xl">account_circle</span>
+                    <h3 class="text-sm font-bold text-[#131B2E]">Detail Pengguna</h3>
+                </div>
+                <button type="button" @click="showDetailModal = false" class="text-[#64748B] hover:text-[#131B2E] transition-colors">
+                    <span class="material-symbols-rounded text-lg">close</span>
+                </button>
+            </div>
+
+            <!-- Profile Summary Card -->
+            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-gradient-to-br from-[#F8FAFC] to-[#EEF2F6] border border-[#CBD5E1]/60">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg shrink-0 shadow-sm overflow-hidden"
+                     :class="detailUser.role_name === 'superadmin' ? 'bg-[#00288E] text-white' : (detailUser.role_name === 'admin' ? 'bg-[#D97706] text-white' : 'bg-[#EAEDFF] text-[#0051D5]')">
+                    <template x-if="detailUser.avatar">
+                        <img :src="detailUser.avatar" :alt="detailUser.name" class="w-full h-full object-cover">
+                    </template>
+                    <template x-if="!detailUser.avatar">
+                        <span class="material-symbols-rounded text-3xl">
+                            <span x-text="detailUser.role_name === 'superadmin' ? 'security' : (detailUser.role_name === 'admin' ? 'workspace_premium' : 'sports_martial_arts')"></span>
+                        </span>
+                    </template>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <h4 class="text-sm font-bold text-[#131B2E] truncate" x-text="detailUser.name"></h4>
+                        <template x-if="detailUser.is_self">
+                            <span class="px-1.5 py-0.2 rounded-full bg-[#0051D5] text-white text-[9px] font-bold">Anda</span>
+                        </template>
+                    </div>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold border"
+                              :class="detailUser.role_badge_class"
+                              x-text="detailUser.role_display"></span>
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold"
+                              :class="detailUser.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
+                              x-text="detailUser.is_active ? 'Akun Aktif' : 'Non-aktif'"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Information Sections -->
+            <div class="space-y-2.5 text-xs">
+                <!-- Kontak -->
+                <div class="p-3 rounded-xl bg-white border border-[#DAE2FD]/80 space-y-2">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+                        <span class="material-symbols-rounded text-sm">contact_mail</span>
+                        <span>Informasi Kontak</span>
+                    </div>
+                    <div class="space-y-1.5 pt-0.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#64748B]">Email:</span>
+                            <span class="font-semibold text-[#131B2E]" x-text="detailUser.email"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#64748B]">No. HP / WA:</span>
+                            <span class="font-semibold text-[#131B2E]" x-text="detailUser.phone"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keanggotaan & Dojang -->
+                <div class="p-3 rounded-xl bg-white border border-[#DAE2FD]/80 space-y-2">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+                        <span class="material-symbols-rounded text-sm">sports_martial_arts</span>
+                        <span>Dojang &amp; Sabuk</span>
+                    </div>
+                    <div class="space-y-1.5 pt-0.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#64748B]">Tingkat Sabuk:</span>
+                            <span class="font-semibold text-[#131B2E]" x-text="detailUser.belt_level"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#64748B]">Unit Dojang:</span>
+                            <span class="font-semibold text-[#131B2E]" x-text="detailUser.dojang_name"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#64748B]">Status PIN Presensi:</span>
+                            <span class="font-semibold" :class="detailUser.has_pin ? 'text-emerald-700' : 'text-amber-700'"
+                                  x-text="detailUser.has_pin ? 'Sudah Diatur' : 'Belum Diatur'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rekening Bank (Jika Ada) -->
+                <div class="p-3 rounded-xl bg-white border border-[#DAE2FD]/80 space-y-2">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+                        <span class="material-symbols-rounded text-sm">account_balance</span>
+                        <span>Rekening Bank</span>
+                    </div>
+                    <div class="space-y-1.5 pt-0.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#64748B]">Bank:</span>
+                            <span class="font-semibold text-[#131B2E]" x-text="detailUser.bank_name"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#64748B]">No. Rekening:</span>
+                            <span class="font-mono font-semibold text-[#131B2E]" x-text="detailUser.bank_account_number"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#64748B]">Atas Nama:</span>
+                            <span class="font-semibold text-[#131B2E]" x-text="detailUser.bank_account_holder"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex items-center gap-2 pt-2 border-t border-[#DAE2FD]">
+                <button type="button" @click="showDetailModal = false"
+                        class="flex-1 py-2.5 rounded-xl border border-[#DAE2FD] text-xs font-semibold text-[#64748B] hover:bg-[#F2F3FF] transition-colors">
+                    Tutup
+                </button>
+                <button type="button" @click="editFromDetail()"
+                        class="flex-1 py-2.5 rounded-xl bg-[#0051D5] hover:bg-[#00288E] text-white text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-rounded text-base">edit</span>
+                    <span>Edit Pengguna</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form: Tambah / Ubah Role & Data Pengguna -->
     <div x-show="showModal" x-cloak
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
@@ -171,7 +322,7 @@
                     <h3 class="text-sm font-bold text-[#131B2E]"
                         x-text="isEdit ? 'Ubah Role &amp; Data Pengguna' : 'Tambah Asisten / Pengguna Baru'"></h3>
                 </div>
-                <button type="button" @click="showModal = false" class="text-[#64748B] hover:text-[#131B2E]">
+                <button type="button" @click="showModal = false" class="text-[#64748B] hover:text-[#131B2E] transition-colors">
                     <span class="material-symbols-rounded text-lg">close</span>
                 </button>
             </div>
@@ -181,6 +332,9 @@
                 <template x-if="isEdit">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
+
+                <!-- Hidden Input Tarif (Diatur via Menu Rekap Gaji & Tarif) -->
+                <input type="hidden" name="rate_per_session" :value="formData.rate_per_session">
 
                 <!-- Pilihan Role -->
                 <div>
@@ -252,19 +406,12 @@
                     </div>
                 </div>
 
-                <!-- Tarif per Sesi & No HP -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div>
-                        <label class="block text-[10.5px] font-semibold text-[#131B2E] mb-1">Tarif Honor per Sesi (Rp) <span class="text-rose-500">*</span></label>
-                        <input type="number" name="rate_per_session" x-model="formData.rate_per_session" required min="0" step="1000"
-                               class="w-full text-xs rounded-xl border border-[#DAE2FD] p-2.5 font-mono font-bold text-[#131B2E] focus:border-[#0051D5] focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10.5px] font-semibold text-[#131B2E] mb-1">Nomor Telepon / WA</label>
-                        <input type="text" name="phone" x-model="formData.phone"
-                               placeholder="08xxxxxxxxxx"
-                               class="w-full text-xs rounded-xl border border-[#DAE2FD] p-2.5 text-[#131B2E] focus:border-[#0051D5] focus:outline-none">
-                    </div>
+                <!-- Nomor Telepon / WA -->
+                <div>
+                    <label class="block text-[10.5px] font-semibold text-[#131B2E] mb-1">Nomor Telepon / WA</label>
+                    <input type="text" name="phone" x-model="formData.phone"
+                           placeholder="08xxxxxxxxxx"
+                           class="w-full text-xs rounded-xl border border-[#DAE2FD] p-2.5 text-[#131B2E] focus:border-[#0051D5] focus:outline-none">
                 </div>
 
                 <!-- Status Aktif (Saat Edit) -->
@@ -298,9 +445,12 @@
 function userManager() {
     return {
         showModal: false,
+        showDetailModal: false,
         isEdit: false,
         formAction: '{{ route('users.store') }}',
+        detailUser: {},
         formData: {
+            id: null,
             name: '',
             email: '',
             role: 'asisten_pelatih',
@@ -314,10 +464,16 @@ function userManager() {
             is_active: 1
         },
 
+        openDetailModal(user) {
+            this.detailUser = user;
+            this.showDetailModal = true;
+        },
+
         openAddModal() {
             this.isEdit = false;
             this.formAction = '{{ route('users.store') }}';
             this.formData = {
+                id: null,
                 name: '',
                 email: '',
                 role: 'asisten_pelatih',
@@ -337,19 +493,39 @@ function userManager() {
             this.isEdit = true;
             this.formAction = '/users/' + id;
             this.formData = {
+                id: id,
                 name: name,
                 email: email,
                 role: role,
-                phone: phone,
-                belt_level: belt_level,
+                phone: phone || '',
+                belt_level: belt_level || '',
                 dojang_id: dojang_id ? String(dojang_id) : '',
-                rate_per_session: rate_per_session,
-                bank_name: bank_name,
-                bank_account_number: bank_account_number,
-                bank_account_holder: bank_account_holder,
+                rate_per_session: rate_per_session || 50000,
+                bank_name: bank_name || '',
+                bank_account_number: bank_account_number || '',
+                bank_account_holder: bank_account_holder || '',
                 is_active: Boolean(is_active)
             };
+            this.showDetailModal = false;
             this.showModal = true;
+        },
+
+        editFromDetail() {
+            if (!this.detailUser.id) return;
+            this.openEditModal(
+                this.detailUser.id,
+                this.detailUser.name,
+                this.detailUser.email,
+                this.detailUser.role_name,
+                this.detailUser.phone === '-' ? '' : this.detailUser.phone,
+                this.detailUser.belt_level === '-' ? '' : this.detailUser.belt_level,
+                this.detailUser.dojang_id,
+                this.detailUser.rate_per_session,
+                this.detailUser.bank_name === '-' ? '' : this.detailUser.bank_name,
+                this.detailUser.bank_account_number === '-' ? '' : this.detailUser.bank_account_number,
+                this.detailUser.bank_account_holder === '-' ? '' : this.detailUser.bank_account_holder,
+                this.detailUser.is_active ? 1 : 0
+            );
         }
     }
 }
