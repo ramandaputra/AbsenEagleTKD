@@ -130,7 +130,7 @@
                 @else
                     <!-- Default Main Tab Header (Avatar + Title + Subtitle) -->
                     <div class="flex items-center space-x-3 w-full min-w-0">
-                        @if(request()->routeIs('schedules.*') || request()->routeIs('salary.admin.*') || request()->routeIs('reports.*') || request()->routeIs('dojangs.*'))
+                        @if(request()->routeIs('schedules.*') || request()->routeIs('salary.admin.*') || request()->routeIs('reports.*') || request()->routeIs('dojangs.*') || request()->routeIs('users.*') || request()->routeIs('activity-logs.*'))
                             <a href="{{ route('dashboard') }}"
                                onclick="if (document.referrer && new URL(document.referrer).origin === window.location.origin) { window.history.back(); return false; }"
                                aria-label="Kembali" title="Kembali"

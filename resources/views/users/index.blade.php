@@ -5,48 +5,52 @@
 @section('content')
 <div class="space-y-3.5 pb-20" x-data="userManager()">
 
-    <!-- Top Navigation & Action Card -->
-    <div class="bg-white rounded-2xl border border-[#DAE2FD] p-3.5 shadow-xs flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5 min-w-0">
-            <a href="{{ route('dashboard') }}"
-               class="w-9 h-9 rounded-full bg-[#EAEDFF] text-[#131B2E] hover:bg-[#DAE2FD] flex items-center justify-center transition-colors shrink-0">
-                <span class="material-symbols-rounded text-xl">arrow_back</span>
-            </a>
+    <!-- Executive Header Banner (Matching Schedules & Salary Style) -->
+    <section class="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#00227A] via-[#00144D] to-[#070E28] p-4 text-white shadow-lg">
+        <div class="pointer-events-none absolute -right-5 -top-5 h-36 w-36 rounded-full bg-blue-500/20 blur-xl"></div>
+        <div class="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-cyan-400/10 blur-xl"></div>
+
+        <div class="relative z-10 flex items-start justify-between gap-3">
             <div class="min-w-0">
-                <h1 class="text-sm sm:text-base font-bold text-[#131B2E] truncate">Kelola Pengguna &amp; Role</h1>
-                <p class="text-[11px] text-[#64748B] truncate mt-0.5">Tambah asisten pelatih &amp; atur role</p>
+                <span class="inline-flex items-center rounded-full border border-blue-300/40 bg-blue-500/25 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-100">
+                    Manajemen Pengguna
+                </span>
+                <h1 class="mt-1.5 text-sm font-extrabold tracking-tight">Kelola Pengguna &amp; Role</h1>
+                <p class="mt-0.5 text-[11px] font-medium text-[#7DD3FC]">Tambah asisten pelatih, atur hak akses, dan tarif per sesi.</p>
             </div>
+
+            <button type="button" @click="openAddModal()"
+                    class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-[11px] font-bold text-[#00288E] shadow-sm transition-colors hover:bg-[#EAEDFF]">
+                <span class="material-symbols-rounded text-base">person_add</span>
+                <span>Tambah</span>
+            </button>
         </div>
+    </section>
 
-        <button type="button" @click="openAddModal()"
-                class="px-3 py-2 rounded-xl bg-[#0051D5] hover:bg-[#00288E] text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors shrink-0">
-            <span class="material-symbols-rounded text-base">person_add</span>
-            <span>Tambah</span>
-        </button>
-    </div>
-
-    <!-- Filter Role Tabs -->
-    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs">
-        <a href="{{ route('users.index') }}"
-           class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-colors {{ empty($roleFilter) ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#64748B] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-            Semua ({{ $users->total() }})
-        </a>
-        <a href="{{ route('users.index', ['role' => 'asisten_pelatih']) }}"
-           class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-colors {{ $roleFilter === 'asisten_pelatih' ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#64748B] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-            Asisten Pelatih
-        </a>
-        <a href="{{ route('users.index', ['role' => 'admin']) }}"
-           class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-colors {{ $roleFilter === 'admin' ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#64748B] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-            Pelatih Utama
-        </a>
-        <a href="{{ route('users.index', ['role' => 'superadmin']) }}"
-           class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-colors {{ $roleFilter === 'superadmin' ? 'bg-[#00288E] text-white shadow-xs' : 'bg-white text-[#64748B] border border-[#DAE2FD] hover:bg-[#F2F3FF]' }}">
-            Superadmin
-        </a>
-    </div>
+    <!-- Filter Role Tabs Section -->
+    <section class="rounded-xl border border-[#DAE2FD]/70 bg-white p-2 shadow-2xs">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+            <a href="{{ route('users.index') }}"
+               class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors {{ empty($roleFilter) ? 'bg-[#00288E] text-white shadow-xs' : 'bg-transparent text-[#64748B] hover:text-[#131B2E] hover:bg-[#F2F3FF]' }}">
+                Semua ({{ $users->total() }})
+            </a>
+            <a href="{{ route('users.index', ['role' => 'asisten_pelatih']) }}"
+               class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors {{ $roleFilter === 'asisten_pelatih' ? 'bg-[#00288E] text-white shadow-xs' : 'bg-transparent text-[#64748B] hover:text-[#131B2E] hover:bg-[#F2F3FF]' }}">
+                Asisten Pelatih
+            </a>
+            <a href="{{ route('users.index', ['role' => 'admin']) }}"
+               class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors {{ $roleFilter === 'admin' ? 'bg-[#00288E] text-white shadow-xs' : 'bg-transparent text-[#64748B] hover:text-[#131B2E] hover:bg-[#F2F3FF]' }}">
+                Pelatih Utama
+            </a>
+            <a href="{{ route('users.index', ['role' => 'superadmin']) }}"
+               class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors {{ $roleFilter === 'superadmin' ? 'bg-[#00288E] text-white shadow-xs' : 'bg-transparent text-[#64748B] hover:text-[#131B2E] hover:bg-[#F2F3FF]' }}">
+                Superadmin
+            </a>
+        </div>
+    </section>
 
     <!-- User List Cards -->
-    <div class="space-y-2.5">
+    <section class="space-y-2.5">
         @forelse($users as $u)
             @php
                 $roleName = $u->role?->name ?? 'asisten_pelatih';
@@ -57,7 +61,7 @@
                 };
                 $roleDisplayName = $u->role?->display_name ?? 'Asisten Pelatih';
             @endphp
-            <div class="bg-white border border-[#DAE2FD] rounded-2xl p-3.5 shadow-xs space-y-3">
+            <article class="bg-white border border-[#DAE2FD] rounded-2xl p-3.5 shadow-xs space-y-3">
                 <div class="flex items-start justify-between gap-2.5">
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="w-11 h-11 rounded-full {{ $roleName === 'superadmin' ? 'bg-[#00288E] text-white' : ($roleName === 'admin' ? 'bg-[#D97706] text-white' : 'bg-[#EAEDFF] text-[#0051D5]') }} flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
@@ -133,7 +137,7 @@
                         @endif
                     </div>
                 </div>
-            </div>
+            </article>
         @empty
             <div class="bg-white rounded-2xl border border-[#DAE2FD] p-6 text-center text-[#64748B]">
                 <span class="material-symbols-rounded text-3xl text-slate-300">person_off</span>
@@ -145,7 +149,7 @@
         <div class="pt-2">
             {{ $users->links() }}
         </div>
-    </div>
+    </section>
 
     <!-- Modal Form: Tambah / Ubah Role Pengguna -->
     <div x-show="showModal" x-cloak
@@ -178,7 +182,7 @@
                     <input type="hidden" name="_method" value="PUT">
                 </template>
 
-                <!-- 1. Pilihan Role (Menambah Asisten atau Mengubah Role) -->
+                <!-- Pilihan Role -->
                 <div>
                     <label class="block text-[11px] font-bold text-[#131B2E] mb-1">
                         Role Hak Akses <span class="text-rose-500">*</span>
@@ -192,7 +196,7 @@
                     <p class="text-[10px] text-[#64748B] mt-0.5">Pilih role untuk mengatur hak akses akun.</p>
                 </div>
 
-                <!-- 2. Nama & Email -->
+                <!-- Nama & Email -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-[10.5px] font-semibold text-[#131B2E] mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
@@ -208,7 +212,7 @@
                     </div>
                 </div>
 
-                <!-- 3. Password & PIN -->
+                <!-- Password & PIN -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-[10.5px] font-semibold text-[#131B2E] mb-1">
@@ -228,7 +232,7 @@
                     </div>
                 </div>
 
-                <!-- 4. Sabuk & Dojang -->
+                <!-- Sabuk & Dojang -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-[10.5px] font-semibold text-[#131B2E] mb-1">Tingkat Sabuk</label>
@@ -248,7 +252,7 @@
                     </div>
                 </div>
 
-                <!-- 5. Tarif per Sesi & No HP -->
+                <!-- Tarif per Sesi & No HP -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-[10.5px] font-semibold text-[#131B2E] mb-1">Tarif Honor per Sesi (Rp) <span class="text-rose-500">*</span></label>
