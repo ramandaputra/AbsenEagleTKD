@@ -101,13 +101,7 @@
                     <span class="material-symbols-rounded text-[18px]">location_on</span>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between gap-2">
-                        <p class="text-[10px] font-semibold text-[#64748B] tracking-wider uppercase">Lokasi Penugasan</p>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0051D5]/10 border border-[#0051D5]/30 text-[10.5px] font-bold text-[#0051D5] shrink-0">
-                            <span class="material-symbols-rounded text-xs">share_location</span>
-                            <span>Penugasan Dojang</span>
-                        </span>
-                    </div>
+                    <p class="text-[10px] font-semibold text-[#64748B] tracking-wider uppercase">Lokasi Penugasan</p>
                     <h5 class="font-bold text-[14px] text-[#131B2E] mt-1 leading-snug">
                         {{ $attendance->user->dojang?->name ?? 'Dojang Eagle Taekwondo Club' }}
                     </h5>
